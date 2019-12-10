@@ -1,0 +1,17 @@
+Enumerações - ENUM
+
+
+public enum OrderStatus {
+	PENDING_PAYMENT,
+	PROCESSING,
+	SHIPPED,
+	DELIVERED;
+}
+
+Conversão de String para Enum
+
+	OrderStatus os1= OrderStatus.PROCESSING;
+	OrderStatus os2 = OrderStatus.valueOf("PROCESSING");
+		
+	System.out.println(os1);
+	System.out.println(os2);

@@ -1,0 +1,385 @@
+
+Tela inicial
+
+import 'package:flutter/material.dart';
+
+void main(){
+  runApp(MaterialApp(
+    home: home(),
+  ));
+}
+
+class home extends StatefulWidget {
+  @override
+  _homeState createState() => _homeState();
+}
+
+class _homeState extends State<home> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xff009788),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("FAZER LOGIN",style: TextStyle(color: Colors.white, fontSize: 15.0),),
+              onPressed: (){},
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
+              color: Colors.greenAccent,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("CADASTRE-SE", style: TextStyle(color: Colors.white, fontSize: 15.0)),
+              onPressed: (){},
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0),),
+              color: Colors.greenAccent,
+            ),
+          ),
+
+        ],
+      ),
+    );
+  }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+import 'package:flutter/material.dart';
+
+void main(){
+  runApp(MaterialApp(
+    home: home(),
+    theme: ThemeData(
+        hintColor: Colors.black,
+        primaryColor: Colors.black
+    ),
+  ));
+}
+
+class home extends StatefulWidget {
+  @override
+  _homeState createState() => _homeState();
+}
+
+class _homeState extends State<home> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xff009788),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child:TextField(
+            keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                labelStyle: TextStyle(color:Colors.black),
+                border: OutlineInputBorder(borderRadius: new BorderRadius.all(new Radius.circular(30.0))),
+                prefixIcon: Icon(Icons.person),
+                hintText:"Email",
+
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: TextField(
+              keyboardType: TextInputType.text,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelStyle: TextStyle(color:Colors.black),
+                border: OutlineInputBorder(borderRadius: new BorderRadius.all(new Radius.circular(30.0))),
+                prefixIcon: Icon(Icons.lock),
+                hintText:"Senha",
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("ENTRAR", style: TextStyle(color: Colors.white, fontSize: 15.0)),
+              onPressed: (){},
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0),),
+              color: Colors.greenAccent,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("Esqueceu a senha?", style: TextStyle(color: Colors.white, fontSize: 15.0)),
+              onPressed: (){},
+              color:  const Color(0xff009788),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+import 'package:flutter/material.dart';
+
+void main(){
+  runApp(MaterialApp(
+    home: home(),
+    theme: ThemeData(
+        hintColor: Colors.black,
+        primaryColor: Colors.black
+    ),
+  ));
+}
+
+class home extends StatefulWidget {
+  @override
+  _homeState createState() => _homeState();
+}
+
+class _homeState extends State<home> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xff009788),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child:TextField(
+            keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                labelStyle: TextStyle(color:Colors.black),
+                border: null,
+                prefixIcon: Icon(Icons.person),
+                hintText:"Email",
+
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("RECUPERAR A SENHA", style: TextStyle(color: Colors.white, fontSize: 15.0)),
+              onPressed: (){},
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0),),
+              color: Colors.greenAccent,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("Voltar?", style: TextStyle(color: Colors.white, fontSize: 15.0)),
+              onPressed: (){},
+              color:  const Color(0xff009788),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MaterialApp(
+    home: home(),
+    theme: ThemeData(
+      hintColor: Colors.black,
+      primaryColor: Colors.black,
+    ),
+  ));
+}
+
+class home extends StatefulWidget {
+  @override
+  _homeState createState() => _homeState();
+}
+
+class _homeState extends State<home> {
+
+  bool _value1 = false, _value2 = false;
+  void _setValue1(bool value) => setState(() => this._value1 = value);
+  void _setValue2(bool value) => setState(() => this._value2 = value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar:AppBar(
+        leading: IconButton(
+          alignment: Alignment.centerLeft,
+          icon: Icon(Icons.arrow_back),
+          onPressed: (){},
+        ),
+
+        title : Text("Cadastro Rapido"),
+        backgroundColor: Colors.greenAccent,
+
+        centerTitle: true,
+      ),
+      backgroundColor: const Color(0xff009788),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              new Flexible(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(10.0, 10.0, 0.0, 10.0),
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: new BorderRadius.circular(30.0),
+                      ),
+                      child: new TextField(
+                        decoration: InputDecoration(
+                          hintText: "Código de Indicação",
+                          border: InputBorder.none
+                        ),
+                      ),
+                  )
+                ),
+              ),
+              new Flexible(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(5.0, 10.0, 0.0, 10.0),
+                  child: RaisedButton(
+                    child: new Text("Verificar Indicante",
+                        style: TextStyle(color: Colors.white, fontSize: 15.0)),
+                    onPressed: () {},
+                    shape: new RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(30.0),
+                    ),
+                    color: Colors.greenAccent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+              padding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.circular(30.0),
+                ),
+                child: new TextField(
+                  decoration: InputDecoration(
+                      hintText: "Nome Completo",
+                      border: InputBorder.none
+                  ),
+                ),
+              )
+          ),
+          Padding(
+              padding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.circular(30.0),
+                ),
+                child: new TextField(
+                  decoration: InputDecoration(
+                      hintText: "Seu melhor email",
+                      border: InputBorder.none
+                  ),
+                ),
+              )
+          ),
+          Padding(
+              padding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.circular(30.0),
+                ),
+                child: new TextField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                      hintText: "Informe sua senha",
+                      border: InputBorder.none
+                  ),
+                ),
+              )
+          ),
+          Padding(
+              padding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.circular(30.0),
+                ),
+                child: new TextField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                      hintText: "Repetir a senha",
+                      border: InputBorder.none
+                  ),
+                ),
+              )
+          ),
+          Container(
+            alignment: Alignment.topLeft,
+
+            child:Row(
+              children: <Widget>[
+                Checkbox(
+                  value: _value1,
+                  onChanged: _setValue1,
+                ),
+                Text("Li, e estou de acordo com os Termos de Uso", style: TextStyle(color: Colors.white),)
+              ],
+            )
+          ),
+            Container(
+              alignment: Alignment.topLeft,
+
+              child:Row(
+                children: <Widget>[
+                  Checkbox(
+                    value: _value2,
+                    onChanged: _setValue2,
+                  ),
+                Text("Sou maior de 18 anos", style: TextStyle(color: Colors.white))
+                ],
+              )
+            ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18.0, 10.0, 18.0, 10.0),
+            child: RaisedButton(
+              child: new Text("CONFIRMAR", style: TextStyle(color: Colors.white, fontSize: 15.0)),
+              onPressed: (){},
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0),),
+              color: Colors.greenAccent,
+            ),
+          )
+
+        ],
+      ),
+
+    );
+  }
+}

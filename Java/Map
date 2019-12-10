@@ -1,0 +1,203 @@
+Map
+
+• É uma coleção de pares chave / valor
+• Não admite repetições do objeto chave
+• Os elementos são indexados pelo objeto chave (não possuem posição)
+• Acesso, inserção e remoção de elementos são rápidos
+• Uso comum: cookies, local storage, qualquer modelo chave-valor
+• Principais implementações:
+• HashMap - mais rápido (operações O(1) em tabela hash) e não ordenado
+• TreeMap - mais lento (operações O(log(n)) em árvore rubro-negra) e ordenado pelo
+compareTo do objeto (ou Comparator)
+• LinkedHashMap - velocidade intermediária e elementos na ordem em que são adicionados
+
+• put(key, value), remove(key), containsKey(key), get(key)
+• Baseado em equals e hashCode
+• Se equals e hashCode não existir, é usada comparação de ponteiros
+• clear()
+• size()
+• keySet() - retorna um Set<K>
+• values() - retorna um Collection<V>
+
+
+
+
+Exemplo
+
+
+public class main {
+
+	public static void main(String[] args) {
+		Repositorio<Integer, Product> produtos = new Repositorio();
+		Repositorio<Integer, Brinquedo> brinquedos = new Repositorio();
+		
+		produtos.add(5, new Cereal("Boi", 1.90, 5, "Carne"));
+		produtos.add(0, new Refrigerantes("Coca-Cola", 1.20, 1,"Coca-cola"));
+		produtos.add(7, new Cereal("Maca", 1.00, 7, "Fruta"));
+		produtos.add(2, new Refrigerantes("Antartica", 1.50, 2,"Guarana"));
+		produtos.add(3, new Refrigerantes("Fanta", 1.40, 3,"Laranja"));
+		produtos.add(4, new Cereal("Arroz", 1.10, 4, "Grao"));
+		
+		
+		System.out.println(CalculationService.max(produtos.getValores()));
+
+		
+	}
+	
+}
+
+
+
+public class CalculationService{
+	public static <T extends Comparable<? super T>, K extends Comparable<? super K>> T max(Map<K,T> maps) {
+		T max = maps.get(0);
+		
+		for(K k : maps.keySet()) {
+			if(maps.get(k) instanceof Refrigerantes) {
+				if(maps.get(k).compareTo(max) > 0) {
+				max = maps.get(k);
+				}
+			}
+			
+		}
+		return max;
+	}
+}
+
+package model.Entities;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+public class Repositorio<K,T>{
+	private Map<K,T> valores = new TreeMap<K,T>();
+	
+	public void add(K k, T t) {
+		valores.put(k, t);
+	}
+	
+	public void remove(K k) {
+		valores.remove(k);
+	}
+	
+	public Map<K,T> getValores(){
+		return valores;
+	}
+	
+	public T getValor(K k) {
+		return valores.get(k);
+	}
+	
+	public String toString() {
+		StringBuilder sdb = new StringBuilder();
+		for(K k : valores.keySet()) {
+			sdb.append(valores.get(k)+"\n");
+		}
+		return sdb.toString();
+	}
+
+}
+
+package model.Entities;
+
+public class Product implements Comparable<Product>{
+	private Integer id;
+	private String name;
+	private Double preco;
+	
+	public Product() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public Product(String name, Double preco, Integer id) {
+		this.name = name;
+		this.preco = preco;
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Double getPreco() {
+		return preco;
+	}
+
+	public void setPreco(Double preco) {
+		this.preco = preco;
+	}
+
+	@Override
+	public String toString() {
+		return " name=" + name + ", preco=" + preco + ", id="+id+"]";
+	}
+	
+	public Integer getId() {
+		return id;
+	}
+
+	
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	@Override
+	public int compareTo(Product o) {
+		return getPreco().compareTo(o.getPreco());
+	}
+}
+
+package model.Entities;
+
+public class Cereal extends Product{
+
+	private String tipo;
+	
+	public Cereal(String name, Double preco, Integer id, String tipo) {
+		super(name, preco, id);
+		this.tipo = tipo;
+	}
+
+	public String getTipo() {
+		return tipo;
+	}
+
+	public void setTipo(String tipo) {
+		this.tipo = tipo;
+	}
+
+	@Override
+	public String toString() {
+		return "Cereal [tipo=" + tipo +" "+ super.toString()+" ]";
+	}
+}
+
+package model.Entities;
+
+public class Refrigerantes extends Product{
+	private String sabor;
+	
+	
+	public Refrigerantes(String name, Double preco, Integer id, String sabor) {
+		super(name, preco, id);
+		this.sabor = sabor;
+	}
+
+	public String getSabor() {
+		return sabor;
+	}
+	
+	public void setSabor(String sabor) {
+		this.sabor = sabor;
+	}
+
+	@Override
+	public String toString() {
+		return "Refrigerantes [sabor=" + sabor +" "+ super.toString() +"]";
+	}
+	
+}

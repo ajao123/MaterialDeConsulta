@@ -1,0 +1,906 @@
+Projeto
+
+ESTRUTURA DO PROJETO
+	Controller
+	Service
+		Impl
+	Repository
+(O de cima usa o debaixo, ex: Controller usa o Service, o Impl implementa o Service, o Impl usa o Repository)
+
+Parte 1 - Conectando ao MySQL
+
+	Selecionando Dependências
+
+		.Web
+		.Jpa
+		.DevTools
+
+
+	Application.properties
+
+		spring.jpa.database=MYSQL
+		spring.datasource.url=jdbc:mysql://localhost/algamoneyapi?createDatabaseIfNotExist=true&useSSL=false
+		spring.datasource.username=root
+		spring.datasource.password=1234567
+
+		spring.jpa.show-sql=true
+
+
+	algamoney-api/pom.xml
+
+		<!--  mysql -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+Parte 2 - Migração de dados com Flyway
+
+	algamoney-api/pom.xml
+
+		<!-- Migracoes - Flyway -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+
+	src/main/resources
+
+		db/migration
+
+			V01__criar_e_registrar_categoria
+
+				CREATE TABLE categoria(
+					codigo BIGINT(20) PRIMARY KEY AUTO_INCREMENT,
+				    nome VARCHAR(50) NOT NULL
+				)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+				INSERT INTO categoria (nome) values ('Lazer');
+				INSERT INTO categoria (nome) values ('Alimentação');
+				INSERT INTO categoria (nome) values ('Supermercado');
+				INSERT INTO categoria (nome) values ('Farmácia');
+				INSERT INTO categoria (nome) values ('Outros');
+
+Parte 3 - Consultando primeiro recurso com GET
+
+	Pacote: com.example.algamoney.api.model
+	Classe Categoria
+			@Entity
+			@Table(name="categoria")
+			public class Categoria {
+				
+				@Id
+				@GeneratedValue(strategy = GenerationType.IDENTITY)
+				private Long codigo;
+				
+				private String nome;
+				
+				public Long getCodigo() {
+					return codigo;
+				}
+				public void setCodigo(Long codigo) {
+					this.codigo = codigo;
+				}
+				public String getNome() {
+					return nome;
+				}
+				public void setNome(String nome) {
+					this.nome = nome;
+				}
+
+				@Override
+				public int hashCode() {
+					final int prime = 31;
+					int result = 1;
+					result = prime * result + (int) (codigo ^ (codigo >>> 32));
+					return result;
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					if (this == obj)
+						return true;
+					if (obj == null)
+						return false;
+					if (getClass() != obj.getClass())
+						return false;
+					Categoria other = (Categoria) obj;
+					if (codigo != other.codigo)
+						return false;
+					return true;
+				}
+				
+				
+			}
+
+	Pacote: com.example.algamoney.api.repository
+	Interface CategoryRepository
+
+		public interface CategoriaRepository extends JpaRepository<Categoria, Long>{
+
+		}
+
+	Pacote: com.example.algamoney.api.resource
+	Classe CategoriaResource
+
+		@RestController
+		@RequestMapping("/categorias")
+		public class CategoriaResource {
+			
+			//AutoImplementação
+			@Autowired
+			private CategoriaRepository categoriaRepository;
+			
+			//Chamar o método
+			@GetMapping
+			public List<Categoria> listar(){
+				return categoriaRepository.findAll();
+			}
+			
+		}
+
+	Postman
+		
+		localhost:8080/categorias
+
+Parte 4 - Cadastrando nova categoria com POST
+	
+	@RestController
+	@RequestMapping("/categorias")
+	Classe Categoria Resource
+
+		//Inserindo valor no banco de dados
+
+		@PostMapping
+		@ResponseStatus(HttpStatus.CREATED)
+		public ResponseEntity<Categoria> criar(@RequestBody Categoria categoria, HttpServletResponse response) {
+			Categoria categoriaSalva = categoriaRepository.save(categoria);
+			
+			URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{codigo}")
+					.buildAndExpand(categoriaSalva.getCodigo()).toUri();
+			response.setHeader("Location", uri.toASCIIString());
+			
+			return ResponseEntity.created(uri).body(categoriaSalva);
+		}
+		
+		//Buscando um valor no banco de dados
+
+
+
+		@GetMapping("/{codigo}")
+		public Optional<Categoria> buscarPeloCodigo(@PathVariable Long codigo) {
+			return categoriaRepository.findById(codigo);
+		}
+
+Parte 5 - Desafio: Retornar 404 caso não exista a categoria
+
+	Classe Categoria Resource
+
+		@GetMapping("/{codigo}")
+		public ResponseEntity<?> buscarPeloCodigo(@PathVariable Long codigo) {
+			Optional<Categoria> categoria =  categoriaRepository.findById(codigo);
+			return !categoria.isEmpty() ? ResponseEntity.ok(categoria) : ResponseEntity.notFound().build();
+		}
+
+Parte 6 - Validando atributos desconhecidos
+
+	application.properties
+
+		spring.jackson.deserialization.fail-on-unknown-properties=true
+
+
+	Postman
+
+		Body:
+
+			{
+				"nome" :"Restaurantes",
+				"descricao" : "Gastos em Restaruantes",
+				"outra" : "Outra Observação"
+			}
+
+
+	PS:
+
+		Status code:
+
+			2xx -> Sucesso
+			4xx -> Erro do cliente
+			5xx -> Erro do serviço/servidor
+
+Parte 7 - Tratando erros com ExceptionHandler
+
+	src/main/resources
+
+		messages.properties
+
+			mensagem.invalida=Mensagem inv\u00E1lida
+
+	com.example.algamoney.api.exceptionhandler
+
+		AlgamoneyExceptionHandler
+
+			@ControllerAdvice
+			public class AlgamoneyExceptionHandler extends ResponseEntityExceptionHandler{
+				
+				@Autowired
+				private MessageSource messageSource;
+				
+				@Override
+				protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+						org.springframework.http.HttpHeaders headers, HttpStatus status, WebRequest request) {
+					
+					String mensagemUsuario = messageSource.getMessage("mensagem.invalida", null, LocaleContextHolder.getLocale());
+					String mensagemDesenvolvedor = ex.getCause().toString();
+					return handleExceptionInternal(ex, new Erro(mensagemUsuario, mensagemDesenvolvedor), headers, HttpStatus.BAD_REQUEST, request);
+				}
+				
+				public static class Erro{
+					private String mensagemUsuario;
+					private String mensagemDesenvolvedor;
+					
+					public Erro(String mensagemUsuario, String mensagemDesenvolvedor) {
+						this.mensagemUsuario = mensagemUsuario;
+						this.mensagemDesenvolvedor = mensagemDesenvolvedor;
+					}
+
+					public String getMensagemUsuario() {
+						return mensagemUsuario;
+					}
+
+					public String getMensagemDesenvolvedor() {
+						return mensagemDesenvolvedor;
+					}
+				}
+			}
+
+Parte 8 - Validando valores inválidos com Bean Validation
+
+	package com.example.algamoney.api.exceptionhandler;
+
+		EntityExceptionHandler;
+
+			@ControllerAdvice
+			public class AlgamoneyExceptionHandler extends ResponseEntityExceptionHandler{
+				
+				@Autowired
+				private MessageSource messageSource;
+				
+				//Função para valores nulos
+				@Override
+				protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+					org.springframework.http.HttpHeaders headers, HttpStatus status, WebRequest request) {
+					
+					String mensagemUsuario = messageSource.getMessage("mensagem.invalida", null, LocaleContextHolder.getLocale());
+					String mensagemDesenvolvedor = ex.getCause() != null ? ex.getCause().toString() : ex.toString();
+
+					//Lista de erros
+					List<Erro> erros = Arrays.asList(new Erro(mensagemUsuario, mensagemDesenvolvedor));
+					return handleExceptionInternal(ex, erros, headers, HttpStatus.BAD_REQUEST, request);
+				}
+				
+				//Função para atributos desconhecidos
+				@Override
+				protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+					HttpHeaders headers, HttpStatus status, WebRequest request) {
+					// TODO Auto-generated method stub
+					List<Erro> erros = criarListaDeErros(ex.getBindingResult());
+					return super.handleExceptionInternal(ex,erros, headers, HttpStatus.BAD_REQUEST, request);
+				}
+				
+				private List<Erro> criarListaDeErros(BindingResult bindingResult){
+					List<Erro> erros = new ArrayList<>();
+					
+					for(FieldError fieldError : bindingResult.getFieldErrors()) {
+						String mensagemUsuario = messageSource.getMessage(fieldError, LocaleContextHolder.getLocale());
+						String mensagemDesenvolvedor = fieldError.toString();
+						erros.add(new Erro(mensagemUsuario, mensagemDesenvolvedor));
+					}
+					
+					return erros;
+				}
+				
+				public static class Erro{
+					private String mensagemUsuario;
+					private String mensagemDesenvolvedor;
+					
+					public Erro(String mensagemUsuario, String mensagemDesenvolvedor) {
+						this.mensagemUsuario = mensagemUsuario;
+						this.mensagemDesenvolvedor = mensagemDesenvolvedor;
+					}
+
+					public String getMensagemUsuario() {
+						return mensagemUsuario;
+					}
+
+					public String getMensagemDesenvolvedor() {
+						return mensagemDesenvolvedor;
+					}
+				}
+			}
+
+
+	package com.example.algamoney.api.model;
+
+		@Entity
+		@Table(name="categoria")
+		public class Categoria {
+			
+			@Id
+			@GeneratedValue(strategy = GenerationType.IDENTITY)
+			private Long codigo;
+			
+			//Limitando a quantidade de valores no nome, entre 3 e 20
+			//Declarando que nome não pode ser nulo
+			@NotNull
+			@Size(min=3, max=20)
+			private String nome;
+			
+			public Long getCodigo() {
+				return codigo;
+			}
+			public void setCodigo(Long codigo) {
+				this.codigo = codigo;
+			}
+			public String getNome() {
+				return nome;
+			}
+			public void setNome(String nome) {
+				this.nome = nome;
+			}
+
+			@Override
+			public int hashCode() {
+				final int prime = 31;
+				int result = 1;
+				result = prime * result + (int) (codigo ^ (codigo >>> 32));
+				return result;
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				Categoria other = (Categoria) obj;
+				if (codigo != other.codigo)
+					return false;
+				return true;
+			}
+			
+			
+		}
+
+
+	package com.example.algamoney.api.resource;
+
+
+		@RestController
+		@RequestMapping("/categorias")
+		public class CategoriaResource {
+			
+			//AutoImplementação
+			@Autowired
+			private CategoriaRepository categoriaRepository;
+			
+			//Chamar o método
+			@GetMapping
+			public List<Categoria> listar(){
+				return categoriaRepository.findAll();
+			}
+			
+			//Adicionando @Valid, para verificar e a classe categoria obedece as restrições: Ex: nome entre 3 e 20
+			@PostMapping
+			@ResponseStatus(HttpStatus.CREATED)
+			public ResponseEntity<Categoria> criar(@Valid @RequestBody Categoria categoria, HttpServletResponse response) {
+				Categoria categoriaSalva = categoriaRepository.save(categoria);
+				
+				URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{codigo}")
+						.buildAndExpand(categoriaSalva.getCodigo()).toUri();
+				response.setHeader("Location", uri.toASCIIString());
+				
+				return ResponseEntity.created(uri).body(categoriaSalva);
+			}
+			/*
+			@GetMapping("/{codigo}")
+			public Optional<Categoria> buscarPeloCodigo(@PathVariable Long codigo) {
+				return categoriaRepository.findById(codigo);
+			}
+			*/
+			
+			@GetMapping("/{codigo}")
+			public ResponseEntity<?> buscarPeloCodigo(@PathVariable Long codigo) {
+				Optional<Categoria> categoria =  categoriaRepository.findById(codigo);
+				return !categoria.isEmpty() ? ResponseEntity.ok(categoria) : ResponseEntity.notFound().build();
+			}
+		}
+
+
+	messages.properties
+
+		mensagem.invalida=Mensagem inv\u00E1lida
+
+		categoria.nome=Nome
+
+	ValidationMessages.properties
+		//Mensagens de erro
+		javax.validation.constraints.NotNull.message={0} \u00e9 obrigat\u00f3rio(a)
+		javax.validation.constraints.Size.message={0} deve ter o tamanho entre {min} e {max}
+
+Parte 9 - Usando eventos para adicionar header Location
+
+	RecursoCriadoEvent
+
+		package com.example.algamoney.api.event;
+
+			public class RecursoCriadoEvent extends ApplicationEvent{
+				
+				private static final long serialVersionUID = 1L;
+				
+				private HttpServletResponse response;
+				private Long codigo;
+				
+				public RecursoCriadoEvent(Object source, HttpServletResponse response, Long codigo) {
+					super(source);
+					this.response = response;
+					this.codigo = codigo;
+				}
+
+				public HttpServletResponse getResponse() {
+					return response;
+				}
+
+				public Long getCodigo() {
+					return codigo;
+				}
+
+			}
+
+	RecursoCriadoListener
+
+		package com.example.algamoney.api.event.listener;
+
+			public class RecursoCriadoListener implements ApplicationListener<RecursoCriadoEvent>{
+
+				@Override
+				public void onApplicationEvent(RecursoCriadoEvent event) {
+					HttpServletResponse response = event.getResponse();
+					Long codigo = event.getCodigo();
+					
+					adicionarHeaderLocation(response, codigo);
+					
+				}
+
+				private void adicionarHeaderLocation(HttpServletResponse response, Long codigo) {
+					URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{codigo}")
+							.buildAndExpand(codigo).toUri();
+					response.setHeader("Location", uri.toASCIIString());
+				}
+
+			}
+
+	CategoriaResource
+
+		package com.example.algamoney.api.resource;
+
+
+			@RestController
+			@RequestMapping("/categorias")
+			public class CategoriaResource {
+				
+				@Autowired
+				private ApplicationEventPublisher publisher;
+				
+				@PostMapping
+				@ResponseStatus(HttpStatus.CREATED)
+				public ResponseEntity<Categoria> criar(@Valid @RequestBody Categoria categoria, HttpServletResponse response) {
+					Categoria categoriaSalva = categoriaRepository.save(categoria);
+					
+					publisher.publishEvent(new RecursoCriadoEvent(this, response, categoriaSalva.getCodigo()));
+					return ResponseEntity.status(HttpStatus.CREATED).body(categoriaSalva);
+				}
+			}
+
+	PessoaResource
+
+		package com.example.algamoney.api.resource;
+
+			@RestController
+			@RequestMapping("/pessoas")
+			public class PessoaResource {
+				
+				@Autowired
+				private ApplicationEventPublisher publisher;
+				
+				@PostMapping
+				@ResponseStatus(HttpStatus.CREATED)
+				public ResponseEntity<Pessoa> criar(@Valid @RequestBody Pessoa pessoa, HttpServletResponse response) {
+					Pessoa pessoaSalva = pessoaRepository.save(pessoa);
+					
+					publisher.publishEvent(new RecursoCriadoEvent(this, response, pessoaSalva.getCodigo()));
+					return ResponseEntity.status(HttpStatus.CREATED).body(pessoaSalva);
+				}
+			}
+
+Parte 10 - Removendo Pessoa com DELETE
+
+	CategoriaResource
+
+		@DeleteMapping("/{codigo}")
+		@ResponseStatus(HttpStatus.NO_CONTENT)
+		public void remover(@PathVariable Long codigo){
+			categoriaRepository.deleteById(codigo);
+		}
+
+
+	public class AlgamoneyExceptionHandler extends ResponseEntityExceptionHandler{
+
+		@ExceptionHandler({ EmptyResultDataAccessException.class })
+		public ResponseEntity<Object> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex, WebRequest request) {
+			String mensagemUsuario = messageSource.getMessage("recurso.nao-encontrado", null, LocaleContextHolder.getLocale());
+			String mensagemDesenvolvedor = ex.toString();
+			List<Erro> erros = Arrays.asList(new Erro(mensagemUsuario, mensagemDesenvolvedor));
+			return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+		}
+	}
+
+
+	messages.properties
+
+
+		mensagem.invalida=Mensagem inv\u00E1lida
+		recurso.nao-encontrado=Recurso n\u00E3o encontrado
+
+		categoria.nome=Nome
+
+		pessoa.nome=Nome
+		pessoa.ativo=Ativo
+
+Parte 11 - Atualizando pessoa com PUT
+
+	PessoaService
+
+		package com.example.algamoney.api.service;
+
+			@Service
+			//@Qualifier("PessoaService")
+			public class PessoaService {
+
+				@Autowired
+
+				private PessoaRepository pessoaRepository;
+				
+				public Pessoa atualizarPessoa(Long codigo, Pessoa pessoa) {
+					Optional<Pessoa> pessoaSalva = pessoaRepository.findById(codigo);
+					if(pessoaSalva.isEmpty()) {
+						throw new EmptyResultDataAccessException(1);
+					}
+					BeanUtils.copyProperties(pessoa, pessoaSalva.get(), "codigo");
+					return pessoaRepository.save(pessoaSalva.get());
+				}
+			}
+
+	PessoaResource
+
+		package com.example.algamoney.api.resource;
+
+
+			@RestController
+			@RequestMapping("/pessoas")
+			public class PessoaResource {
+				
+				@Autowired
+				PessoaService pessoaService;
+				
+				@PutMapping("/{codigo}")
+				public ResponseEntity<Pessoa> atualizar(@PathVariable Long codigo, @Valid @RequestBody Pessoa pessoa){
+					
+					Pessoa pessoaSalva = pessoaService.atualizarPessoa(codigo, pessoa);
+					return ResponseEntity.ok(pessoaSalva);
+					
+				}
+				
+				@PutMapping("/{codigo}/ativo")
+				@ResponseStatus(HttpStatus.NO_CONTENT)
+				public void atualizarPropriedadeAtivo(@PathVariable Long codigo, @RequestBody Boolean ativo) {
+					pessoaService.atualizarPropriedadeAtivo(codigo, ativo);
+				}
+				
+			}
+
+Parte 12 - Implementando atualização parcial com PUT
+
+
+	PessoaService
+
+		package com.example.algamoney.api.service;
+
+			@Service
+			//@Qualifier("PessoaService")
+			public class PessoaService {
+
+				@Autowired
+
+				private PessoaRepository pessoaRepository;
+				
+				public Pessoa atualizarPessoa(Long codigo, Pessoa pessoa) {
+					Optional<Pessoa> pessoaSalva = pessoaRepository.findById(codigo);
+					if(pessoaSalva.isEmpty()) {
+						throw new EmptyResultDataAccessException(1);
+					}
+					BeanUtils.copyProperties(pessoa, pessoaSalva.get(), "codigo");
+					return pessoaRepository.save(pessoaSalva.get());
+				}
+				
+				public void atualizarPropriedadeAtivo(Long codigo, Boolean ativo) {
+					Pessoa pessoaSalva = buscarPessoaPeloCodigo(codigo);
+					pessoaSalva.setAtivo(ativo);
+					pessoaRepository.save(pessoaSalva);
+				}
+				
+				public Pessoa buscarPessoaPeloCodigo(Long codigo) {
+					Optional<Pessoa> pessoaSalva = pessoaRepository.findById(codigo);
+					if(pessoaSalva.isEmpty()) {
+						throw new EmptyResultDataAccessException(1);
+					}
+					return pessoaSalva.get();
+				}
+
+			}
+
+	PessoaResource
+
+		package com.example.algamoney.api.resource;
+
+			@RestController
+			@RequestMapping("/pessoas")
+			public class PessoaResource {
+				
+				@Autowired
+				PessoaService pessoaService;
+				
+				
+				@PutMapping("/{codigo}/ativo")
+				@ResponseStatus(HttpStatus.NO_CONTENT)
+				public void atualizarPropriedadeAtivo(@PathVariable Long codigo, @RequestBody Boolean ativo) {
+					pessoaService.atualizarPropriedadeAtivo(codigo, ativo);
+				}
+				
+				
+			}		
+						
+Parte 13 - Criando a migração e entidade de lançamento
+
+	Classe Lançamento
+
+		package com.example.algamoney.api.model;
+
+			@Entity
+			@Table(name="lancamento")
+			public class Lancamento {
+
+				@Id
+				@GeneratedValue(strategy = GenerationType.IDENTITY)
+				private Long codigo;
+				private String descricao;
+				
+				@Column(name="data_vencimento")
+				private LocalDate dataVencimento;
+				
+				@Column(name="data_pagamento")
+				private LocalDate dataPagamento;
+				
+				
+				private BigDecimal valor;
+				
+				private String observacao;
+				
+				@Enumerated(EnumType.STRING)
+				private TipoLancamento tipo;
+				
+				@ManyToOne
+				@JoinColumn(name="codigo_categoria")
+				private Categoria categoria;
+				
+				@ManyToOne
+				@JoinColumn(name="codigo_pessoa")
+				private Pessoa pessoa;
+
+				public Long getCodigo() {
+					return codigo;
+				}
+
+				public void setCodigo(Long codigo) {
+					this.codigo = codigo;
+				}
+
+				public String getDescricao() {
+					return descricao;
+				}
+
+				public void setDescricao(String descricao) {
+					this.descricao = descricao;
+				}
+
+				public LocalDate getDataVencimento() {
+					return dataVencimento;
+				}
+
+				public void setDataVencimento(LocalDate dataVencimento) {
+					this.dataVencimento = dataVencimento;
+				}
+
+				public LocalDate getDataPagamento() {
+					return dataPagamento;
+				}
+
+				public void setDataPagamento(LocalDate dataPagamento) {
+					this.dataPagamento = dataPagamento;
+				}
+
+				public BigDecimal getValor() {
+					return valor;
+				}
+
+				public void setValor(BigDecimal valor) {
+					this.valor = valor;
+				}
+
+				public String getObservacao() {
+					return observacao;
+				}
+
+				public void setObservacao(String observacao) {
+					this.observacao = observacao;
+				}
+
+				public TipoLancamento getTipo() {
+					return tipo;
+				}
+
+				public void setTipo(TipoLancamento tipo) {
+					this.tipo = tipo;
+				}
+
+				public Categoria getCategoria() {
+					return categoria;
+				}
+
+				public void setCategoria(Categoria categoria) {
+					this.categoria = categoria;
+				}
+
+				public Pessoa getPessoa() {
+					return pessoa;
+				}
+
+				public void setPessoa(Pessoa pessoa) {
+					this.pessoa = pessoa;
+				}
+
+				@Override
+				public int hashCode() {
+					final int prime = 31;
+					int result = 1;
+					result = prime * result + ((codigo == null) ? 0 : codigo.hashCode());
+					return result;
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					if (this == obj)
+						return true;
+					if (obj == null)
+						return false;
+					if (getClass() != obj.getClass())
+						return false;
+					Lancamento other = (Lancamento) obj;
+					if (codigo == null) {
+						if (other.codigo != null)
+							return false;
+					} else if (!codigo.equals(other.codigo))
+						return false;
+					return true;
+				}
+			}
+
+	V03__criar_tabela_lançamento.sql
+
+		CREATE TABLE lancamento (
+			codigo BIGINT(20) PRIMARY KEY AUTO_INCREMENT,
+			descricao VARCHAR(50) NOT NULL,
+			data_vencimento DATE NOT NULL,
+			data_pagamento DATE,
+			valor DECIMAL(10,2) NOT NULL,
+			observacao VARCHAR(100),
+			tipo VARCHAR(20) NOT NULL,
+			codigo_categoria BIGINT(20) NOT NULL,
+			codigo_pessoa BIGINT(20) NOT NULL,
+			FOREIGN KEY (codigo_categoria) REFERENCES categoria(codigo),
+			FOREIGN KEY (codigo_pessoa) REFERENCES pessoa(codigo)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Salário mensal', '2017-06-10', null, 6500.00, 'Distribuição de lucros', 'RECEITA', 1, 1);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Bahamas', '2017-02-10', '2017-02-10', 100.32, null, 'DESPESA', 2, 2);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Top Club', '2017-06-10', null, 120, null, 'RECEITA', 3, 3);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('CEMIG', '2017-02-10', '2017-02-10', 110.44, 'Geração', 'RECEITA', 3, 4);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('DMAE', '2017-06-10', null, 200.30, null, 'DESPESA', 3, 5);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Extra', '2017-03-10', '2017-03-10', 1010.32, null, 'RECEITA', 4, 6);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Bahamas', '2017-06-10', null, 500, null, 'RECEITA', 1, 7);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Top Club', '2017-03-10', '2017-03-10', 400.32, null, 'DESPESA', 4, 8);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Despachante', '2017-06-10', null, 123.64, 'Multas', 'DESPESA', 3, 9);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Pneus', '2017-04-10', '2017-04-10', 665.33, null, 'RECEITA', 5, 10);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Café', '2017-06-10', null, 8.32, null, 'DESPESA', 1, 5);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Eletrônicos', '2017-04-10', '2017-04-10', 2100.32, null, 'DESPESA', 5, 4);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Instrumentos', '2017-06-10', null, 1040.32, null, 'DESPESA', 4, 3);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Café', '2017-04-10', '2017-04-10', 4.32, null, 'DESPESA', 4, 2);
+		INSERT INTO lancamento (descricao, data_vencimento, data_pagamento, valor, observacao, tipo, codigo_categoria, codigo_pessoa) values ('Lanche', '2017-06-10', null, 10.20, null, 'DESPESA', 4, 1);
+
+Parte 14 - Desafio: Lista e busca de lançamentos
+
+Parte 15 - Desafio: Cadastrando o primeiro lançamento
+
+ps: Intellij
+
+Parte 16 - OBS
+
+	@JsonIgnoreProperties("employer")
+	@JsonIgnoreProperties("employees")
+
+	//Criar um recurso que vai retornar todos os BASE EXAMES cadastrados
+	//EXAME BASICO = Nome, rangeMax e rangeMin
+	//Cadastrar um exame base, tu vai testar o retorno
+
+	á = \u00e1
+	à = \u00e0
+	â = \u00e2
+	ã = \u00e3
+	ä = \u00e4
+	Á = \u00c1
+	À = \u00c0
+	Â = \u00c2
+	Ã = \u00c3
+	Ä = \u00c4
+	é = \u00e9
+	è = \u00e8
+	ê = \u00ea
+	ê = \u00ea
+	É = \u00c9
+	È = \u00c8
+	Ê = \u00ca
+	Ë = \u00cb
+	í = \u00ed
+	ì = \u00ec
+	î = \u00ee
+	ï = \u00ef
+	Í = \u00cd
+	Ì = \u00cc
+	Î = \u00ce
+	Ï = \u00cf
+	ó = \u00f3
+	ò = \u00f2
+	ô = \u00f4
+	õ = \u00f5
+	ö = \u00f6
+	Ó = \u00d3
+	Ò = \u00d2
+	Ô = \u00d4
+	Õ = \u00d5
+	Ö = \u00d6
+	ú = \u00fa
+	ù = \u00f9
+	û = \u00fb
+	ü = \u00fc
+	Ú = \u00da
+	Ù = \u00d9
+	Û = \u00db
+	ç = \u00e7
+	Ç = \u00c7
+	ñ = \u00f1
+	Ñ = \u00d1
+	& = \u0026
+	' = \u0027

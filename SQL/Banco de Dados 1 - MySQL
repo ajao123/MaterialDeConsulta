@@ -1,0 +1,135 @@
+
+-- Criando o database
+create database bdmodelo1
+default character set utf8
+default collate utf8_general_ci;
+
+-- Selecionando o database
+use bdmodelo1;
+
+-- Criando a tabela professor
+create table if not exists professores(
+	matricula int not null auto_increment,
+    nome varchar(50) not null,
+    nascimento date,
+    sexo enum('M','F'),
+	formacao text,
+    nacionalidade varchar(20) default 'Brasil',
+    primary key(matricula)
+)default charset utf8;
+
+-- inserindo valores
+insert into professores values 
+
+(default, 'Marco Antonio', '1990-03-12', 'M', 'Geografia na Universidade Federal do Ceará', default),
+(default, 'Joao Carlos', '1989-03-10', 'M', 'Fisica na Universidade Federal do Ceará', 'EUA'),
+(default, 'Pedro Aguiar', '1992-04-20', 'M', 'Quimica na Universidade Federal do Ceará', 'França'),
+(default, 'Fernando Melo', '1974-01-05', 'M', 'Biologia na Universidade Federal do Ceará', default),
+(default, 'Maria Rita', '1983-06-11', 'F', 'Historia na Universidade Federal do Ceará', 'Portugal'),
+(default, 'Juliana Peixoto', '1993-02-08', 'F', 'Administração na Universidade Federal do Ceará', default),
+(default, 'Antonieta Guimarães', '1995-04-07', 'F', 'Filosofia na Universidade Federal do Ceará', default),
+(default, 'Roberto Jeferson', '1991-09-23', 'M', 'Computação na Universidade Federal do Ceará', 'Japão'),
+(default, 'Teresa Lins', '1977-05-20', 'F', 'Engenharia Elétrica na Universidade Federal do Ceará', default),
+(default, 'Carlos Henrique', '1990-08-28', 'M', 'Matemática na Universidade Federal do Ceará', 'China');
+
+-- Selecionando todos os professores
+select * from professores;
+
+-- Selecionando todos os professores do sexo masculino
+select * from professores where sexo = 'M';
+
+-- Selecionando todos os professores do sexo feminino
+select * from professores where sexo = 'F';
+
+-- Ordenando pressores
+
+	-- Pela idade:
+    
+		select * from professores order by nascimento;
+        
+        select * from professores order by nascimento desc;
+        
+	-- Pelo nome:
+    
+		select * from professores order by nome;
+        
+        select * from professores order by nome desc;
+
+-- Selecionando professores que nasceram depois de 1990
+
+	select * from professores where nascimento >= '1990-00-00';
+
+	-- Professoras que nasceram após 1990
+    
+		select * from professores where nascimento >= '1990-00-00' and sexo = 'F';
+	
+    -- Professores que nasceram após 1990
+    
+		select * from professores where nascimento >= '1990-00-00' and sexo = 'M';
+
+-- Selecionando professores que nasceram entre 1880 1990
+    
+	select * from professores where nascimento between '1980-00-00' and '1990-00-00';
+    
+	-- Professoras que nasceram entre 1880 1990
+    
+		select * from professores where nascimento between '1980-00-00' and '1990-00-00' and sexo = 'F';
+	
+    -- Professores que nasceram entre 1880 1990
+    
+		select * from professores where nascimento between '1980-00-00' and '1990-00-00' and sexo = 'M';
+
+-- Selecionar professores que são brasileiro
+
+	select * from professores where nacionalidade = 'Brasil' order by nome;
+    
+-- Selecionar professores que não são brasileiros
+
+	select * from professores where nacionalidade != 'Brasil' order by nome;
+
+-- Selecionar professores que são brasileiros ou japoneses e tenham nascido depois de 1990
+
+	select * from professores where nacionalidade in('Brasil', 'Japão') and nascimento > '1990-00-00';
+    
+-- Selecionar professores que são brasileiros ou japoneses e tenham nascido de 1990    
+
+	select * from professores where nacionalidade in('Brasil', 'Japão') and nascimento < '1990-00-00';
+    
+-- Selecionar o nome dos professore cujo nome começa com J
+
+	select nome from professores where nome like 'J%';
+    
+-- Seleiconar o nome dos professore cujo nome termina com A ou O
+
+	select nome from professores where nome like '%a' or nome like '%o' order by nome;
+	
+-- Selecionar o nome dos professores cujo nome tenha j;
+
+	select nome from professores where nome like '%j%';
+    
+-- Selecionar o nome dos professores cujo nome tenha j, mas que não comece por j;
+
+	select nome from professores where nome like '_%j%';
+    
+-- Selecionar as nacionalidades dos professores 
+
+	select distinct nacionalidade from professores order by nacionalidade;
+    
+-- Adicionando a coluna salario
+
+alter table professores add column
+salario decimal(7,2);
+	
+update professores set salario = 5000 where nacionalidade = 'Brasil';
+update professores set salario = 6000 where nacionalidade != 'Brasil';
+update professores set salario = 5500 where nacionalidade = 'EUA';
+
+select nome, nacionalidade, avg(salario), count(*) from professores group by(nacionalidade);
+-- having avg(salario) > (Select avg(salario) from professores);
+select nacionalidade, avg(salario) from professores group by(nacionalidade)
+having avg(salario) <= (Select avg(salario) from professores 
+where nacionalidade = (select min(nacionalidade) from professores));
+
+select nacionalidade, avg(salario) from professores group by(nacionalidade) having avg(salario) =
+(select min(salario) from professores);
+

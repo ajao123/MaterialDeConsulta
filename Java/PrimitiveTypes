@@ -1,0 +1,37 @@
+Tipos Primitivos
+
+		boolean var1 = true;
+		char var2 = 'A';
+		byte var3 = 127;
+		int var4 = 2147483647; 
+		long var5 = 2147483648L;
+		float var6 = 42.1f;
+		double var7 = 23.83;
+		String var8 = "ABCDEF";
+		Object var9 = "GHIJKL";
+		Object var10 = 4.5f;
+
+		Object obj = 10;
+		int valor = (int) obj;
+
+		Object var11;
+		var11 = var1;
+		System.out.println(var11);
+		var11 = var2;
+		System.out.println(var11);
+		var11 = var3;
+		System.out.println(var11);
+		var11 = var4;
+		System.out.println(var11);
+		var11 = var5;
+		System.out.println(var11);
+		var11 = var6;
+		System.out.println(var11);
+		var11 = var7;
+		System.out.println(var11);
+		var11 = var8;
+		System.out.println(var11);
+		var11 = var9;
+		System.out.println(var11);
+		var11 = var10;
+		System.out.println(var11);

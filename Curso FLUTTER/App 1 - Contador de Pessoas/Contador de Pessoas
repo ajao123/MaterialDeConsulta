@@ -1,0 +1,253 @@
+
+Parte 1 - Estrutura
+
+	main.dart:
+	
+		import 'package:flutter/material.dart';
+		void main(){
+		  runApp(MaterialApp(
+		    title: "Contador de Pessoas",
+		    home: Container(color: Colors.white,)
+		  ));
+		}
+
+Parte 2 - Adicionando Colunas
+
+	main.dart:
+
+		import 'package:flutter/material.dart';
+
+			void main() {
+			  runApp(MaterialApp(
+			      title: "Contador de Pessoas",
+			      home: Column(
+			        mainAxisAlignment: MainAxisAlignment.center,	//Alinhamento
+			        children: <Widget>[
+			          Text(
+			            "Pessoas: 0",
+			            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), //Estilo do Texto
+			          )
+			          ),
+			          Text(
+			            "Pode Entrar",
+			            style: TextStyle(color: Colors.white, fontStyle: FontStyle.italic, fontSize: 30.0),	//Estilo do Texto
+			          )
+			        ],
+			      )));
+			}
+
+Parte 3 - Adicionando Rows
+
+	main.dart:
+
+		import 'package:flutter/material.dart';
+
+			void main() {
+			  runApp(MaterialApp(
+			      title: "Contador de Pessoas",
+			      home: Column(
+			        mainAxisAlignment: MainAxisAlignment.center,
+			        children: <Widget>[
+			          Text(
+			            "Pessoas: 0",
+			            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+			          ),
+			          Row(
+			            mainAxisAlignment: MainAxisAlignment.center,
+			            children: <Widget>[
+			              FlatButton(
+			                child: Text(
+			                  "+1",
+			                  style: TextStyle(fontSize: 40.0, color: Colors.white),
+			                ),
+			                  onPressed: (){},
+			              ),
+			              FlatButton(
+			                child: Text(
+			                  "-1",
+			                  style: TextStyle(fontSize: 40.0, color: Colors.white),
+			                ),
+			                onPressed: (){},
+			              )
+			            ],
+			          ),
+			          Text(
+			            "Pode Entrar",
+			            style: TextStyle(
+			                color: Colors.white,
+			                fontStyle: FontStyle.italic,
+			                fontSize: 30.0),
+			          )
+			        ],
+			      )));
+			}
+
+Parte 4 - Image, Padding, Stack
+
+	Criar Repositorio Images e adicionar uma Imagem(Restaurant)
+
+	pubspec.yaml:
+
+		assets:
+	    	- images/restaurant.jpg
+
+	main.dart:
+
+		import 'package:flutter/material.dart';W
+
+		void main() {
+		  runApp(MaterialApp(
+		      title: "Contador de Pessoas",
+		      home: Stack(
+		        children: <Widget>[
+		          Image.asset(
+		              "images/restaurant.jpg",
+		               fit : BoxFit.cover,
+		               height:1000.0
+		         ),Column(
+		            mainAxisAlignment: MainAxisAlignment.center,
+		            children: <Widget>[
+		              Text(
+		                "Pessoas: 0",
+		                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+		              ),
+		              Row(
+		                mainAxisAlignment: MainAxisAlignment.center ,
+		                children: <Widget>[
+
+		                  Padding(
+		                    padding: EdgeInsets.all(10.0),
+		                    child: FlatButton(
+		                      child: Text(
+		                        "+1",
+		                        style: TextStyle(fontSize: 40.0, color: Colors.white),
+		                      ),
+		                      onPressed: (){},
+		                    ),
+		                  ),
+		                  Padding(
+		                    padding: EdgeInsets.all(10.0),
+		                    child: FlatButton(
+		                      child: Text(
+		                        "-1",
+		                        style: TextStyle(fontSize: 40.0, color: Colors.white),
+		                      ),
+		                      onPressed: (){},
+		                    ),
+		                  ),
+
+		                ],
+		              ),
+		              Text(
+		                "Pode Entrar",
+		                style: TextStyle(
+		                    color: Colors.white,
+		                    fontStyle: FontStyle.italic,
+		                    fontSize: 30.0),
+		              )
+		            ],
+		          )
+		        ],
+		      )));
+		}
+
+Parte 5 - Stateless e Statefull
+
+	import 'package:flutter/material.dart';
+
+	void main() {
+	  runApp(MaterialApp(
+	      title: "Contador de Pessoas",
+	      home: HOME()));
+	}
+
+	class HOME  extends StatefulWidget {
+	  @override
+	  _HOME_State createState() => _HOME_State();
+	}
+
+	class _HOME_State extends State<HOME> {
+
+	  int _people = 0;
+	  String _infoText = "Pode Entrar";
+
+	  void _changedPeople(int delta){
+	    setState(() {
+	      _people+=delta;
+
+	      if(_people < 0){
+	        _infoText="Mundo Invertido";
+	        if(_people < -10){
+	          _people++;
+	          _infoText="Mundo Invertido - Está Cheio";
+	        }
+	      }else if(_people <= 10){
+	        _infoText="Pode Entrar";
+	      }else{
+	        _infoText="Está Cheio";
+	        _people--;
+	      }
+	    });
+
+	  }
+	  @override
+	  Widget build(BuildContext context) {
+	    return Stack(
+	      children: <Widget>[
+	        Image.asset(
+	            "images/restaurant.jpg",
+	            fit : BoxFit.cover,
+	            height:1000.0
+	        ),Column(
+	          mainAxisAlignment: MainAxisAlignment.center,
+	          children: <Widget>[
+	            Text(
+	              "Pessoas:$_people",
+	              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+	            ),
+	            Row(
+	              mainAxisAlignment: MainAxisAlignment.center ,
+	              children: <Widget>[
+
+	                Padding(
+	                  padding: EdgeInsets.all(10.0),
+	                  child: FlatButton(
+	                    child: Text(
+	                      "+1",
+	                      style: TextStyle(fontSize: 40.0, color: Colors.white),
+	                    ),
+	                    onPressed: (){
+	                      _changedPeople(1);
+
+	                    },
+	                  ),
+	                ),
+	                Padding(
+	                  padding: EdgeInsets.all(10.0),
+	                  child: FlatButton(
+	                    child: Text(
+	                      "-1",
+	                      style: TextStyle(fontSize: 40.0, color: Colors.white),
+	                    ),
+	                    onPressed: (){
+	                      _changedPeople(-1);
+	                    },
+	                  ),
+	                ),
+
+	              ],
+	            ),
+	            Text(
+	              _infoText,
+	              style: TextStyle(
+	                  color: Colors.white,
+	                  fontStyle: FontStyle.italic,
+	                  fontSize: 30.0),
+	            )
+	          ],
+	        )
+	      ],
+	    );
+	  }
+	}
+

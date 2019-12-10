@@ -1,0 +1,9 @@
+Verbo: GET, POST, PUT, etc
+URL: http://host/cidades?uf=MG
+Header: Accept, Accept-Language, etc		=>	HTTP Request
+Parâmetros: Query String, Payload ...
+
+Code: 200 OK, 404, 500
+Headers: Content-Type, etc					=>	HTTP Response
+Resposta: [{"codigo":1,"nome":"São Paulo"}, ...]
+

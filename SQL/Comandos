@@ -1,0 +1,357 @@
+
+Criando Database 
+
+	Simples:
+
+		create database revisao;
+
+	Extensão para caracteres especiais:
+
+		create database cadastro
+		default character set utf8
+		default collate utf8_general_ci;
+
+Descrição da Tabela
+
+	describe pessoas;
+
+Apagando Tabela
+
+	drop table pessoas1;
+
+Selecionar Database
+
+	use cadastro;
+
+Criando Tabelas 
+
+	Ex1: 
+
+		CREATE TABLE pessoas(
+			nome varchar(30),
+			idade tinyint(3),
+			sexo char(1),
+			peso float,
+			altura float,
+			nacionalidade varchar(20)
+		);
+
+	Ex2:
+
+		CREATE TABLE pessoas(
+
+			nome varchar(30) NOT NULL,
+			nascimento date,
+			sexo enum('M','F'),
+			peso decimal(5,2),
+			altura decimal(3,2),
+			nacionalidade varchar(20) DEFAULT 'Brasil'
+		)DEFAULT CHARSET = utf8;
+
+	Ex3:
+
+		create table if not exists cursos(
+				nome varchar(30) not null unique,
+			    descricao text, 
+			    carga int unsigned,
+			    totalAulas int unsigned,
+			    ano year default '2016'
+			)default charset = utf8;
+
+COMANDO ALTER
+
+
+	Adicionar uma coluna:
+		ALTER TABLE pessoas ADD COLUMN profissao VARCHAR(30);
+
+	Remover uma coluna:
+		ALTER TABLE pessoas DROP COLUMN profissao;
+
+	Adicionar profissao DEPOIS do nome:
+
+		ALTER TABLE pessoas ADD COLUMN profissao VARCHAR(30) AFTER nome;
+
+	Adicionar profissão em primeiro:
+
+		ALTER TABLE pessoas ADD COLUMN profissao VARCHAR(30) FIRST;
+
+
+	Usando Modify:
+
+		ALTER TABLE pessoas ADD COLUMN profissao VARCHAR(10) not null;
+		ALTER TABLE pessoas MODIFY COLUMN profissao VARCHAR(10) not null default '';
+
+	Alterando o Nome:
+
+		ALTER TABLE pessoas change COLUMN profissao prof varchar(50) not null;
+
+
+	Inserindo posteriormente
+
+		alter table cursos
+		add column idCurso int first;
+
+	Adicionando um primary key
+
+		alter table cursos
+		add primary key(idCurso);
+
+	Removendo Coluna
+
+		alter table pessoas
+		drop column profissao
+
+COMANDO DROP
+
+	drop table if exists alunos;
+	drop database cadastro;
+-----------------------------------------------------------------------------------ROW-------------------------------------------------------------------------------
+
+COMANDO INSERT
+
+		INSERT INTO pessoas (nome, nascimento, sexo, peso, altura, nacionalidade) 
+		values ('Godofredo','1984-01-02','M', 78.5,'1.83','Brasil');
+
+		INSERT INTO pessoas(id, nome, nascimento, sexo, peso, altura, nacionalidade)
+		values (DEFAULT, 'Adalgiza','1938-11-2','F','63.2','1.75', DEFAULT);
+
+		INSERT INTO pessoas(id, nome, nascimento, sexo, peso, altura)
+		values (DEFAULT, 'Roberto','1928-8-5','F','93.2','1.65');
+
+		INSERT INTO pessoas(nome, nascimento, sexo, peso, altura)
+		values ('Carlos','1928-8-5','M','93.2','1.65');
+
+		Inserindo Mais de Um valor:
+
+			insert into  gafanhotos (nome, nascimento, sexo, peso, altura, prof) VALUES
+			('abc','1928-8-5','M','93.2','1.65',''),
+			('def','1928-8-5','F','93.2','1.65','');
+
+			insert into  gafanhotos VALUES
+			(DEFAULT, 'abcSD','1928-8-5','M','93.2','1.65',DEFAULT,''),
+			(DEFAULT, 'defDS','1928-8-5','F','93.2','1.65',DEFAULT,''); 
+
+COMANDO UPDATE
+
+		insert into cursos (idCurso, nome, descricao, carga, totalAula) values
+			(DEFAULT,'Html4',"Curso de Html4", '1', '20'),
+			(DEFAULT,'Algoritmos','Curso de Algoritmos', '1', '20'),
+			(DEFAULT,'Photoshop','Algoritmos', '1', '20'),
+			(DEFAULT,'Pgp','Curso de Pgp', '1', '20'),
+			(DEFAULT,'Java','Curso de Java', '1', '20'),
+			(DEFAULT,'MySQL','Curso de MySQL', '1', '20'),
+			(DEFAULT,'Word','Curso de Word', '1', '20'),
+			(DEFAULT,'Sapateado','Curso de Sapateado', '1', '20'),
+			(DEFAULT,'Cozinha','Curso de Cozinha', '1', '20'),
+			(DEFAULT,'Youtuber','Curso de Youtuber', '1', '20');
+
+
+		update cursos set totalAula = '20' where idCurso > '0';
+
+		update cursos set nome = 'Html5' where idCurso = '1';
+
+		update cursos set nome = 'Php' where idCurso = '4';
+
+		update cursos set ano = '2018' where idCurso > '5';
+
+		update cursos set ano = '2050', carga = '800' where ano = '2018';
+
+		update cursos set ano = '2018' where idCurso < '8';
+
+		update cursos set ano = '2018', carga = '0' where ano = '2050' limit 2;
+
+COMANDO DELETE
+
+	delete from cursos where idCurso = '8';
+
+	delete from cursos where ano = '2018' LIMIT 2;
+
+	Deletando todos os dados da tabela:
+
+		TRUNCATE TABLE cursos;
+		TRUNCATE cursos;
+
+COMANDO SELECT
+
+	Selecionando tudo:
+
+		select * from cursos;
+
+	Selecionando cursos ordenados por nome:
+
+		select * from cursos order by nome;
+
+	Selecionando cursos ordenados por nome de forma decrescente:
+
+		select * from cursos order by nome desc;
+
+	Selecionando determinadas colunas da tabela:
+
+		select nome, carga, ano from cursos order by nome;
+
+	Selecionando determinadas colunas da tabela, e duas ordenações:	
+
+		select nome, carga, ano from cursos order by ano, nome;
+
+	Usando where:
+
+		select * from cursos where ano = '2016' order by nome;
+
+		BETWEEN e AND:
+
+			select nome, carga, ano from cursos where totaulas BETWEEN  '10' AND '40' order by nome;
+
+			select nome from cursos where ano between '2014' and '2016';
+
+			select nome from cursos where ano between '2014' and '2016' order by ano desc, nome;
+
+		IN:
+
+			select idcurso, nome from cursos where ano in('2014', '2016', '2018') order by nome;
+
+		AND:
+
+			select * from cursos where ano > '2015' and carga > '30' order by ano, nome; 
+
+		OR:
+
+			select * from cursos where ano = '2015' or ano = '2016' order by ano, nome; 
+
+		LIKE e NOT LIKE:
+
+			select * from cursos where nome like 'P%';
+			select * from cursos where nome like 'p%';
+			select * from cursos where nome like '%a';
+
+			select * from cursos where nome like 'P%';
+			select * from cursos where nome like 'p%';
+			select * from cursos where nome like '%a';
+
+			select * from cursos where nome like '%a%';
+
+			select * from cursos where nome like 'PH%P';
+
+			select * from cursos where nome like 'PH%P%';
+
+			select * from cursos where nome like 'PH%P_';
+
+
+		Distinct:
+
+			select distinct nacionalidade from gafanhotos order by nacionalidade;
+
+		Funções de Agregação:
+
+			Count:
+				
+				Select count(*) from cursos;
+
+				select count(*) from cursos where carga > 40;
+
+			Max:
+
+				select max(carga) from cursos;
+				select max(carga) from cursos where ano = '2016';
+
+			Min:
+
+				select min(carga) from cursos;
+				select min(carga) from cursos where ano = '2016';
+
+			Sum:
+			
+				select sum(totaulas) from cursos where ano = '2016';
+
+			Avg:
+			
+				select avg(totaulas) from cursos where ano = '2016';
+
+			Group By:
+
+				select profissao, count(*) from gafanhotos group by(profissao) order by count(*) desc;
+
+				select sexo, count(*) from gafanhotos where nascimento > '2005-1-1' group by(sexo);
+
+				select ano, count(*), avg(totaulas) from cursos group by(ano) order by ano;
+
+				select ano, count(*), max(totaulas) from cursos group by(ano) order by ano;
+
+				select ano, count(*), min(totaulas) from cursos group by(ano) order by ano;
+
+				select ano, count(*), avg(totaulas) from cursos where ano > '2015' group by(ano) order by ano;
+
+				select ano, count(*), max(totaulas) from cursos where ano > '2015' group by(ano) order by ano;
+
+				select ano, count(*), min(totaulas) from cursos where ano > '2015' group by(ano) order by ano;
+
+				select profissao, avg(peso), count(*) from gafanhotos where sexo = 'F' group by(profissao);
+
+
+			Having:
+
+				select nacionalidade, count(*) from gafanhotos 
+				where nacionalidade != 'Brasil' 
+				group by(nacionalidade) 
+				having count(*) > 3;
+
+				select altura, count(*) from gafanhotos 
+				where peso > '100'
+				group by(altura) 
+				having altura > (select avg(altura) from gafanhotos);﻿
+
+
+			Foreign Key:
+
+				alter table gafanhotos add column cursopreferido int;
+
+				alter table gafanhotos add foreign key(cursopreferido) references cursos(idcurso);
+
+			Join:
+
+				select gafanhotos.nome, cursos.nome, cursos.ano from gafanhotos 
+				join cursos on cursos.idcurso = gafanhotos.cursopreferido;
+
+			Left Join:
+
+				select gafanhotos.nome, cursos.nome, cursos.ano from gafanhotos 
+				left outer join cursos on cursos.idcurso = gafanhotos.cursopreferido;
+
+			Righ Join:
+
+
+				select gafanhotos.nome, cursos.nome, cursos.ano from gafanhotos 
+				right outer join cursos on cursos.idcurso = gafanhotos.cursopreferido;
+
+			Usando as: 
+
+				select g.nome, c.nome, c.ano from gafanhotos as g join cursos as c on c.idcurso = g.cursopreferido;
+
+
+			Interação entre tabela(Foreign key)
+
+				create table gafanhoto_assiste_curso (
+					id int not null auto_increment,
+					ndata date,
+					idgafanhoto int,
+					idcurso int,
+					primary key(id),
+					foreign key(idgafanhoto) references gafanhotos(id),
+					foreign key(idcurso) references cursos(idcurso)
+				)default charset = utf8;
+
+				select gac.id, c.nome, g.nome from 
+				gafanhotos as g join gafanhoto_assiste_curso as gac 
+				on gac.idgafanhoto = g.id
+				join cursos c 
+				on c.idcurso = gac.idcurso;
+				
+
+
+
+
+
+
+
+
+
+

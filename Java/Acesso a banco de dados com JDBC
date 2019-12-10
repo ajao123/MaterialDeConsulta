@@ -1,0 +1,439 @@
+Acesso a banco de dados com JDBC
+
+Dados do JDBC
+
+	user=developer
+	password=1234567
+	dburl=jdbc:mysql://localhost:3306/coursejdbc
+	useSSL=false
+
+Classe DataBase - Padrão
+	
+	/*
+		1 - Cria o Connection
+		2 - Fecha a Connection
+		3 - Fecha o Statement
+		4 - Fecha o ResultSet
+	*/
+
+	public class DB {
+		
+		private static Connection conn = null;
+		
+		public static Connection getConnection() {
+			if(conn == null) {
+				try {
+					Properties props = loadProperties();
+					String url = props.getProperty("dburl");
+					conn = DriverManager.getConnection(url, props);
+				}catch(SQLException e) {
+					throw new DbException(e.getMessage());
+				}
+			}
+			return conn;
+		}
+		
+		public static void closeConnection() {
+			if(conn != null) {
+				try {
+					conn.close();
+				}catch(SQLException e) {
+					throw new DbException(e.getMessage());
+				}
+			}
+		}
+		
+		//Carregar as propriedades presentes no arquivo db.properties
+		private static Properties loadProperties() {
+			try(FileInputStream  fs = new FileInputStream("db.properties")){
+				Properties props = new Properties();
+				props.load(fs);
+				return  props;
+			} catch (IOException e) {
+				throw new DbException(e.getMessage());
+			} 
+		}
+		
+		public static void closeStatement(Statement st) {
+			if(st != null) {
+				try {
+					st.close();
+				} catch (SQLException e) {
+					throw new DbException(e.getMessage());
+				}
+			}
+		}
+		public static void closeResultSet(ResultSet rs) {
+			if(rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					throw new DbException(e.getMessage());
+				}
+			}
+		}
+		
+	}
+
+-------------------------------------------------------------------//----------------------------------------------------------------
+
+DbException e DbIntegrityException
+
+	public class DbException extends RuntimeException{
+
+		public DbException(String msg) {
+			super(msg);
+		}
+		private static final long serialVersionUID = 1L;
+	}
+
+	public class DbIntegrityException extends RuntimeException{
+
+		private static final long serialVersionUID = 1L;
+		
+		public DbIntegrityException(String msg) {
+			super(msg);
+		}
+	}
+
+------------------------------------------------------------------//-----------------------------------------------------------------
+
+1 - Criando Conexao
+
+	Classe Connection 
+		//Criando Conexao
+		Connection conn = DB.getConnection();
+		
+		//Fechando Conexao
+		DB.closeConnection();
+
+2 - Criando Conexão, Statement e ResultSet
+
+	public static void main(String[] args) {
+		Connection conn = null;
+		Statement st = null;
+		ResultSet rs = null;
+		
+		try {
+			//Cria a conexão
+			conn = DB.getConnection();
+			
+			//Cria Statement
+			st = conn.createStatement();
+			
+			//ResultSet recebe os dados retornados pelo comando SQL
+			rs = st.executeQuery("select *from department");
+		
+			//Enquanto rs não chega no final da tabela(Retornando FALSE)
+			while(rs.next()) {
+				//Selecionando os valoes pelo tipo e o nome deles no JDBC
+				System.out.println(rs.getInt("Id")+", "+rs.getString("Name"));
+			}
+
+
+		}catch(SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		finally {
+			//Poderiamos fecha-los aki, mas seria necessário adicionar muitos Catchs
+
+			//Fechando ResultSet
+			DB.closeResultSet(rs);
+		
+			//Fechando Statement
+			DB.closeStatement(st);
+		
+			//Fechando a Conexao	
+			DB.closeConnection();
+		}
+	}
+
+3 - Utilizando Conexão, PreparedStatement, ResultSet e Adicionando valores 
+
+	public static void main(String[] args) {
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+		//Criando uma variável Connection
+		Connection conn = null;
+		
+		//Criando uma variável PreparedStatement
+		PreparedStatement st = null;
+		
+
+		try {
+			conn = DB.getConnection();
+			/*
+
+			//Classe que prepara o Statement
+			//Inserindo valores
+			st = conn.prepareStatement(
+					"INSERT INTO seller "
+					+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+					+ "VALUES "			
+					+ "(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+										//Verificar linhas alteradas
+			//st.setX(Posicao da interrogação, Valor adicionado);
+
+			//Adicionando nome
+			st.setString(1, "Carl Purple");	
+			
+			//Adicionando email
+			st.setString(2, "carl@gmail.com");
+			
+			//Adicionando data
+			st.setDate(3, new java.sql.Date(sdf.parse("22/04/1985").getTime()));
+			
+			//Adicionando Salário
+			st.setDouble(4, 3000.0);
+
+			//Adicionando Id do Departamento
+			st.setInt(5, 4);
+
+			*/
+			//Adicionando 
+			st = conn.prepareStatement(
+					"INSERT INTO department (Name) values ('D1'), ('D2')", 
+					Statement.RETURN_GENERATED_KEYS);
+					//Necessário para retornar as chaves dos valores adicionados "st.getGeneratedKeys()"
+			//Execução do comando em SQL, retornar a quantidade de linhas alteradas
+			int rowsAffected = st.executeUpdate();
+				    |
+				   	|
+			//System.out.println("Done! Rows affected: "+rowsAffected);
+			
+
+			if(rowsAffected > 0) {
+				//Chaves das linhas alteradas
+				ResultSet rs = st.getGeneratedKeys();
+				
+				while(rs.next()) {
+					int id = rs.getInt(1);
+					System.out.println("Done! Id: "+id);
+				}
+				
+			}else {
+				System.out.println("No rown affected");
+			}
+			
+		}catch(SQLException e) {
+			System.out.println(e.getMessage());
+		}/*
+		catch(ParseException e) {
+			System.out.println(e.getMessage());
+		}
+		*/
+		finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(st);
+			DB.closeConnection();
+		}
+	}
+
+4 - Utilizando Update no JDBC
+
+	public static void main(String[] args) {
+		
+		Connection conn = null;
+		PreparedStatement st = null;
+		
+		try {
+			conn = DB.getConnection();
+
+			//Comando Update
+			st = conn.prepareStatement(
+					"UPDATE seller "
+					+"SET BaseSalary = BaseSalary+? "
+					+ "WHERE DepartmentId = ?");
+			
+			st.setDouble(1, 200.0); //Primeira Interrogação
+			st.setInt(2, 2);	//Segunda Interrogação
+			
+			int rowAffected = st.executeUpdate();	//Quantidade de linhas afetadas
+			
+			if(rowAffected > 0) {
+					System.out.println("ID: "+rowAffected);
+			}else {
+				System.out.println("No rown affected");
+			}
+			
+			}catch(SQLException e) {
+				System.out.println(e.getMessage());
+			}finally {
+				DB.closeStatement(st);
+				DB.closeConnection();
+			}
+		}
+
+5 - setAutoCommit, commit e rollback 
+
+	public static void main(String[] args) {
+		
+		Connection conn = null;
+		Statement st = null;
+		
+		try {
+
+			conn = DB.getConnection();
+
+		//Quando a função conn.setAutoCommit(false); for executada, as funções de SQL só serão executadas quando o conn.commit; for 
+		//executado. 
+
+	  	|*	conn.setAutoCommit(false);
+		|		
+		|	st = conn.createStatement();
+		|	int rows1 = st.executeUpdate("UPDATE seller SET BaseSalary = 2002 WHERE DepartmentId = 1");
+		|	
+		|	int x = 2;
+		|	
+		|	if(x < 2) {
+		|		throw new SQLException("Fake error");
+		|	}
+		|	
+		|	int rows2 = st.executeUpdate("UPDATE seller SET BaseSalary = 3002 WHERE DepartmentId = 2");
+		|	
+		|*	conn.commit();
+			
+			System.out.println("rows1 = " + rows1);
+			System.out.println("rows2 = " + rows2);
+			
+			}catch(SQLException e) {
+				try {
+					//Rollback reverte todos os comandos de SQL anteriormente executados
+
+					conn.rollback();
+					throw new DbException(e.getMessage());
+			
+				} catch (SQLException e1) {
+			
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					throw new DbException(e1.getMessage());
+				
+				}finally {
+				
+					DB.closeStatement(st);
+					DB.closeConnection();
+				
+				}
+		}
+	}	
+
+
+	public static void main(String[] args) {
+		Connection conn = null;
+		// 1 Statement stt = null;
+		ResultSet rs = null;
+		PreparedStatement stt = null;
+		try {
+			conn = DB.getConnection();
+			// 1 stt = conn.createStatement();
+			// 1 rs = stt.executeQuery("Select Name from seller WHERE DepartmentId = 2");
+		
+			stt = conn.prepareStatement("DELETE from department WHERE Id > ?"
+					,Statement.RETURN_GENERATED_KEYS);	
+		
+			stt.setInt(1, 5);
+			
+			
+			int rowAffected = stt.executeUpdate();
+			
+			System.out.println(rowAffected);
+			
+			if(rowAffected > 0) {
+				rs = stt.getGeneratedKeys();
+				while(rs.next()) {
+					System.out.println(rs.getInt(1));
+				}
+			}
+			
+		}catch(SQLException e) {
+			throw new DbException(e.getMessage());
+		}finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(stt);
+		}
+		
+		DB.closeConnection();
+	}
+
+6 - Formas de fazermos inserções, deleções, buscas e Updates
+
+	1 - Com Statement(Buscas)
+
+			//Cria a conexão
+			conn = DB.getConnection();
+			
+			//Cria Statement
+			st = conn.createStatement();
+			
+			//ResultSet recebe os dados retornados pelo comando SQL
+			rs = st.executeQuery("select *from department");
+
+			//Enquanto rs não chega no final da tabela(Retornando FALSE)
+			while(rs.next()) {
+				//Selecionando os valoes pelo tipo e o nome deles no JDBC
+				System.out.println(rs.getInt("Id")+", "+rs.getString("Name"));
+			}
+
+	2 - Com PreparedStatement(Inserções, deleções, Updates)
+
+		Deleção
+
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement stt = null;
+
+		conn = DB.getConnection();
+		
+		stt = conn.prepareStatement("DELETE from department WHERE Id > ?",Statement.RETURN_GENERATED_KEYS);		
+		stt.setInt(1, 5);
+		int rowAffected = stt.executeUpdate();
+			
+		System.out.println(rowAffected);
+			
+		if(rowAffected > 0) {
+			rs = stt.getGeneratedKeys();
+			while(rs.next()) {
+				System.out.println(rs.getInt(1));
+			}
+		}
+
+		Update
+
+		st = conn.prepareStatement(
+					"UPDATE seller "
+					+"SET BaseSalary = BaseSalary+? "
+					+ "WHERE DepartmentId = ?");
+			
+			st.setDouble(1, 200.0); //Primeira Interrogação
+			st.setInt(2, 2);	//Segunda Interrogação
+
+			int rowAffected = st.executeUpdate();
+
+			if(rowAffected > 0) {
+					System.out.println("ID: "+rowAffected);
+			}else {
+				System.out.println("No rown affected");
+			}
+
+		Inserção
+
+		stt = conn.prepareStatement(""
+					+ "INSERT INTO department "
+					+ "(Name) VALUES (?),(?)"
+					,Statement.RETURN_GENERATED_KEYS);	
+		
+			stt.setString(1, "Food");
+			stt.setString(2, "Mobile");
+			
+			int rowAffected = stt.executeUpdate();
+			System.out.println(rowAffected);
+			
+			
+			if(rowAffected > 0) {
+				rs = stt.getGeneratedKeys();
+				while(rs.next()) {
+					System.out.println(rs.getInt(1));
+				}
+			}

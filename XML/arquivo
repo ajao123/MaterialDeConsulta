@@ -1,0 +1,27 @@
+<?xml version = "1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE livros[
+<!ELEMENT livros (livro)+>
+<!ELEMENT livro (titulo,editora, autor+)> 
+<!ELEMENT titulo (#PCDATA)> 
+<!ELEMENT editora (#PCDATA)> 
+<!ELEMENT autor (#PCDATA)> 
+<!ATTLIST livro ISBN CDATA #REQUIRED>
+
+]> 
+
+
+
+<livros>   
+	<livro ISBN="1234">     
+		<titulo>Inside XML</titulo>     
+		<editora>New Riders</editora>     
+		<edição>3ª</edição>     
+		<autor>Steven</autor>     
+		<autor>Holzner</autor>    
+    </livro>
+</livros> 
+
+
+//corretissimo

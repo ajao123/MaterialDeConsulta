@@ -1,0 +1,58 @@
+Listas
+
+	Podem ser ordenados via Collections.Sort -> Interface Comparable
+		Ex: Collections.sort(list);
+
+	
+
+	Declaração: Para ArrayList
+
+	List<String> nomes = new ArrayList<>();
+
+	1 - Para adicionar na Lista(No final do List)
+		nomes.add("Joao");
+
+		List<Integer> list = Arrays.asList(1,2,3,4,5);
+
+		PS: Adiciona um valor numa determinada posição:
+			nomes.add(3, "Joaquim");
+
+	2 - Retorna a primeira posição de x dentro da Lista
+		nomes.indexOf("x");
+
+	3 - Retorna a ultima posição de x dentro da Lista
+		nomes.lastIndexOf("x");
+
+	4 - Remover o valor dentro de uma Lista
+		
+		Excluindo por posicao:
+			nomes.remove(0);  => Exclui o valor a posicao 0
+
+		Excluindo por valor:
+			nomes.remove("x");	=> Remove o primero valor de "x" encontrado.
+
+		Excluindo valores que cumprem uma especificação:
+			Exclui os valores que não começam com J
+				nomes.removeIf(x -> x.charAt(0) != 'J');
+		//Exclui todos os valores
+		nomes.clear();
+
+	5 - Retornar valores dentro do List, em classes, retorna a referência
+
+		1 - result recebe todos as String, presentes em nomes, que terminem em o
+								  [-------padrão-------]             IF                    
+			List<String> result = nomes.stream().filter(x -> x.charAt(x.length()-1) == 'o').collect(Collectors.toList());
+
+		2 - share recebe a primeira String, presente em nomes, que comece com a letra H, caso não exista, recebe null. 
+						   [-------padrão-------]             IF        
+			String share = nomes.stream().filter(x -> x.charAt(0) == 'H').findFirst().orElse(null);
+
+		3 - Para Classes:
+				1 - Retorna a referência do primeiro Employee que tenha o ID igual à id, caso não exista, retorna null.
+					Employee emp = employees.stream().filter(x -> x.getID() == id).findFirst().orElse(null);
+
+				2 - Retorna as referências de todos os Employees que não tenham o ID igual a 10.
+					List<Employee> lst = employees.stream().filter(x -> x.getID() != 10).collect(Collectors.toList());
+
+	6 - Verificar se a lista esta vazia.
+	list.isEmpty();

@@ -1,0 +1,17 @@
+
+Tipos Primitivos
+
+	Numérico:
+		Inteiro(TinyInt, SmallInt, Int, MediumInt, BigInt)
+		Real(Decimal, Float, Double, Real)
+		Lógico(Bit, Boolean)
+
+	Data/Tempo: (Date, DateTime, TimeStamp, Time, Year)
+
+	Literal:
+		Caractere(Char, VarChar)
+		Testo(TinyText, Text, MediumText, LongText)
+		Binário(TinyBlob, Blob, MediumBlob, LongBlob)
+		Coleção(Enum, Set)
+
+	Especial: (Geometry,Pointy, Polygon, MultiPolygon)

@@ -1,0 +1,31 @@
+
+Classes Estáticas
+
+public class Calculator {
+	
+	public static final double PI = 3.14159;
+	
+	public static double circumference(double radius) {
+		return (2*PI*radius);
+	}
+	public static double volume(double radius) {
+		return (4*PI*radius*radius*radius)/3;
+	}
+}
+
+public class CurrencyConverter {
+	public static double IOF = 6;
+	
+	public static double Converter(double dolarPrice, double saldo) {
+		return (dolarPrice+(IOF/100)*dolarPrice)*saldo;
+	}
+}
+
+Main
+	double radius = scan.nextDouble();
+		
+		System.out.println("Circumference: "+String.format("%.2f", Calculator.circumference(radius)));
+		System.out.println("Volume: "+String.format("%.2f", Calculator.volume(radius)));
+		System.out.println("PI: "+String.format("%.2f", Calculator.PI));
+	
+		System.out.println(CurrencyConverter.Converter(3.10, 200));

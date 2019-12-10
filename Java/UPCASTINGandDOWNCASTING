@@ -1,0 +1,184 @@
+BusinessAccount ba = new BusinessAccount(1, "a", 200.00, 50.00);
+		SavingsAccount sa = new SavingsAccount();
+		
+		//UPCASTING
+		
+		Account ac1 = new BusinessAccount(2,"b",300.00, 60.00);
+		Account ac2 = new SavingsAccount(3,"c",400.00, 6.0);
+		Account ac3 = ba;
+		Account ac4 = sa;
+		
+		System.out.println(ac1);
+		System.out.println(ac2);
+		System.out.println(ac3);
+		System.out.println(ac4);
+		
+		//DONWCASTING
+		
+		BusinessAccount ac5 =(BusinessAccount) ac1;
+		Account ac6 = ac1;
+		ac5.loan(4.0);
+		
+	//	SavingsAccount ac7 = (SavingsAccount) ac1;
+		
+		if(ac1 instanceof SavingsAccount) {
+			SavingsAccount ac7 = (SavingsAccount) ac1;
+			ac7.updateBalance();
+			System.out.println(ac7);
+		}
+		
+		if(ac2 instanceof SavingsAccount) {
+			SavingsAccount ac7 = (SavingsAccount) ac2;
+			ac7.updateBalance();
+			System.out.println(ac7);
+		}
+		System.out.println(ac2);
+
+		Executando
+
+		BusinessAccount [loanLimit=60.0][number=2, holder=b, balance=300.0]
+		SavingsAccount [interestRate=6.0][number=3, holder=c, balance=400.0]
+		BusinessAccount [loanLimit=50.0][number=1, holder=a, balance=200.0]
+		SavingsAccount [interestRate=null][number=null, holder=null, balance=null]
+		SavingsAccount [interestRate=6.0][number=3, holder=c, balance=2800.0]
+		SavingsAccount [interestRate=6.0][number=3, holder=c, balance=2800.0]
+		BusinessAccount [loanLimit=60.0][number=2, holder=b, balance=300.0]
+		SavingsAccount [interestRate=6.0][number=3, holder=c, balance=400.0]
+		BusinessAccount [loanLimit=50.0][number=1, holder=a, balance=200.0]
+		SavingsAccount [interestRate=null][number=null, holder=null, balance=null]
+		SavingsAccount [interestRate=6.0][number=3, holder=c, balance=2800.0]
+		SavingsAccount [interestRate=6.0][number=3, holder=c, balance=2800.0]
+
+
+
+
+		SuperClasse Account
+
+		package entities;
+
+public class Account {
+	protected Integer number;
+	protected String holder;
+	protected Double balance;
+	
+	public Account() {
+		
+	}
+
+	public Account(Integer number, String holder, Double balance) {
+		this.number = number;
+		this.holder = holder;
+		this.balance = balance;
+	}
+
+	public Integer getNumber() {
+		return number;
+	}
+
+	public void setNumber(Integer number) {
+		this.number = number;
+	}
+
+	public String getHolder() {
+		return holder;
+	}
+
+	public void setHolder(String holder) {
+		this.holder = holder;
+	}
+
+	public Double getBalance() {
+		return balance;
+	}
+
+	public void setBalance(Double balance) {
+		this.balance = balance;
+	}
+	
+	public void withdraw(Double amount) {
+		balance-=amount;
+	}
+	public void deposit(Double amount) {
+		balance+=amount;
+	}
+
+	@Override
+	public String toString() {
+		return "Account [number=" + number + ", holder=" + holder + ", balance=" + balance + "]";
+	}
+	
+	
+}
+
+
+SUBCLASSE BusinessAccount
+
+package entities;
+
+public class BusinessAccount extends Account{
+	private Double loanLimit;
+	
+	public BusinessAccount() {		
+		super();
+	}
+
+	public BusinessAccount(Integer number, String holder, Double balance, Double loanLimit) {
+		super(number, holder, balance);
+		this.loanLimit = loanLimit;
+	}
+
+	public Double getLoanLimit() {
+		return loanLimit;
+	}
+
+	public void setLoanLimit(Double loanLimit) {
+		this.loanLimit = loanLimit;
+	}
+
+	public void loan(Double amount) {
+		if(amount <= loanLimit) {
+			deposit(amount);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "BusinessAccount [loanLimit=" + loanLimit + "]"+ "[number=" + number + ", holder=" + holder + ", balance=" + balance + "]";
+	}	
+}
+
+Subclasse SavingsAccount
+
+package entities;
+
+public class SavingsAccount extends Account{
+	private Double interestRate;
+	
+	public SavingsAccount() {	
+	}
+
+	public SavingsAccount(Integer number, String holder, Double balance, Double interestRate) {
+		super(number, holder, balance);
+		this.interestRate = interestRate;
+	}
+
+	public Double getInterestRate() {
+		return interestRate;
+	}
+
+	public void setInterestRate(Double interestRate) {
+		this.interestRate = interestRate;
+	}
+	
+	public void updateBalance() {
+		balance+=interestRate*balance;
+	}
+
+	@Override
+	public String toString() {
+		return "SavingsAccount [interestRate=" + interestRate + "]"+"[number=" + number + ", holder=" + holder + ", balance=" + balance + "]";
+	}
+	
+	
+}
+

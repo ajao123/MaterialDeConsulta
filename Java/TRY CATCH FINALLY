@@ -1,0 +1,50 @@
+TRY CATCH FINALLY
+
+package finallyBlock;
+
+
+	public static void main(String[] args) {
+		File file = new File("C:\\Users\\FRANCISCOJARBAS\\Desktop\\txt\\in.txt");
+		Scanner sc = null;
+		
+		try {
+			sc = new Scanner(file);
+			while(sc.hasNextLine()) {
+				System.out.println(sc.nextLine());
+			}
+		}catch(FileNotFoundException e) {
+			System.out.println("Error opening file: "+e.getMessage());
+		}
+		finally {
+			if(sc != null) {
+				sc.close();
+			}
+		}
+	
+	public static void main(String[] args) {
+			Scanner scan = new Scanner(System.in);
+			try {
+
+				String[] vector = scan.nextLine().split(" ");
+				int position = scan.nextInt();
+				System.out.println(vector[position]);
+
+			}catch(ArrayIndexOutOfBoundsException e) {
+				System.out.println("Invalid Position");
+			}
+			catch(InputMismatchException e) {
+				System.out.println("Input Error");
+			}
+			System.out.println("End of program");
+		}
+
+
+		try {
+			String s = scan.nextLine();
+			char column = s.charAt(0);
+			Integer row = Integer.parseInt(s.substring(1));
+			return new chessPosition(column, row);
+
+		} catch (RuntimeException e) {
+			throw new InputMismatchException("Error reading ChessPosition. Valid value are from a1 and h8.");
+		}

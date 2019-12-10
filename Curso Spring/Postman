@@ -1,0 +1,16 @@
+Postgram
+
+Testando Postman usando o site https://www.mocky.io/
+
+	Gerando HTTP no mocky
+	Body:
+
+		{
+		    "nome" : "Allisson Jardel",
+		    "idade" : "21"
+		}
+
+	Geramos o link e enviamos via Postman, e recebemo a resposta
+
+
+	

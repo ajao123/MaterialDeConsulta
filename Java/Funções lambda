@@ -1,0 +1,977 @@
+Funções lambda
+
+Funções Mais Importantes - HELP
+	
+	Comparator - Faz comparações(Não me diga), usado para ordenar valores, ou simplesmente comparar(Retorna -1, 0 ou 1)
+
+		/*
+			Comparator<Employee> comp = (p1, p2) -> {
+				return p1.getSalario().compareTo(p2.getSalario());
+			};
+			
+			list.sort(comp);
+		*/
+									Equivalentes
+		
+		//	list.sort((p1, p2) -> p1.getSalario().compareTo(p2.getSalario()));
+
+		// System.out.println(comparator.compare(list.get(0), list.get(1)));
+		
+	Consumer - (Realização uma determinada ação que altera os valores)
+
+		Apenas um Elemento
+
+		/*
+			Consumer<Employee> consumer = p1 -> {
+				p1.setSalario(1000.0);
+			};
+			
+			consumer.accept(list.get(0));
+		*/
+		
+		Toda a lista
+		
+		//	list.forEach(p1 -> p1.setSalario(p1.getSalario() * 10));
+
+	Predicate - (Funciona como filtro, mas pode funcionar como verificação)
+
+		/*
+			Predicate<Employee> predicate = p1 -> {
+				
+				return p1.getSalario() > 1500;
+				
+			};
+			
+			System.out.println(predicate.test(list.get(2)));	//Retorna true ou false
+			
+			list.removeIf(predicate);
+		
+		*/
+		
+		//	list.removeIf(p1 -> p1.getSalario() > 1500);
+
+	Function - (Retorna valores, eles podendo ou não ter sido alterados, Ex: Retornar nomes em Caixa Alta)
+
+		/*
+
+			List<Double> lists = list.stream().map(p1 -> p1.getSalario()+500).collect(Collectors.toList());
+		
+			lists.forEach(System.out::println);
+
+		*/
+
+		/*
+
+			Function<Employee, String> function = p1 -> {
+				return p1.getName().toUpperCase();
+			};
+			
+			
+			
+			List<String> lists = list.stream().map(function).collect(Collectors.toList());
+			lists.forEach(System.out::println);
+			list.forEach(System.out::println);
+			
+			System.out.println(function.apply(list.get(0)));
+
+		*/
+
+	Stream - Conjunto temporário
+
+		List<Integer> nums = Arrays.asList(1,2,3,4,5,6);
+		
+		Stream<Integer> st1 = nums.stream().map(x -> x*100);	//Recebendo os valores e os modificando(Multiplicando por 100)
+		
+		System.out.println(Arrays.toString(st1.toArray()));	//Emprimindo a Stream
+	
+	
+		Stream<Integer> st2 = Stream.of(1,2,3,4,5,6);	//Inserindo os valores por ( )
+		
+		Stream<Integer> st3 = Stream.iterate(0, x -> x+2); //Stream, cujo o primeiro item, e o próximo item sempre vai ser o anterior mais 2, logo e infinita
+
+		//Retornando uma lista de valores
+		List<Double> st4 = list.stream().filter(p1 -> p1.getSalario() > 2000.0).map(p -> p.getSalario() + 10).collect(Collectors.toList());
+	
+		System.out.println(Arrays.toString((st4.toArray())));
+		
+		
+		List<Integer> numeros = Arrays.asList(3, 4, 5, 10, 7);	
+		int i = numeros.stream().map(p -> p*10).reduce(0, (x,y) -> x+y);	//Soma os valores e multiplica por 10
+		System.out.println(i);
+			
+		List<Integer> impares = numeros.stream().filter(p -> (p%2) != 0).map(p -> p+1).collect(Collectors.toList());
+		List<Integer> pares = numeros.stream().filter(p -> (p%2) == 0).collect(Collectors.toList());
+
+		System.out.println(impares);
+		System.out.println(pares);
+		//impares.addAll(pares);
+		//System.out.println(impares);
+
+package model.entities;
+
+		public class Product {
+			private String name;
+			private Double price;
+			
+			public Product() {
+				// TODO Auto-generated constructor stub
+			}
+
+			public Product(String name, Double price) {
+				this.name = name;
+				this.price = price;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+			public void setName(String name) {
+				this.name = name;
+			}
+
+			public Double getPrice() {
+				return price;
+			}
+
+			public void setPrice(Double price) {
+				this.price = price;
+			}
+
+			@Override
+			public String toString() {
+				return "Product [name=" + name + ", price=" + price + "]";
+			}	
+		}
+
+Comparator - Utilizado no metodo Sort ...
+
+	1 Comparator objeto de classe separada
+
+		public class MyComparator implements Comparator<Product>{
+			@Override
+			public int compare(Product p1, Product p2) {
+				return p1.getName().toUpperCase().compareTo(p2.getName().toUpperCase());
+			}
+		}
+
+		public class Program {
+		public static void main(String[] args) {
+			List<Product> list = new ArrayList<>();
+			
+			list.add(new Product("TV",900.00));
+			list.add(new Product("Notebook", 1200.00));
+			list.add(new Product("Tablet", 450.00));
+			
+			list.sort(new MyComparator());
+			System.out.println(list);
+		}
+	}
+
+	2 Comparator objeto de classe anônima
+
+		public class Program {
+			public static void main(String[] args) {
+				List<Product> list = new ArrayList<>();
+				
+				list.add(new Product("TV",900.00));
+				list.add(new Product("Notebook", 1200.00));
+				list.add(new Product("Tablet", 450.00));
+			
+				Comparator<Product> comparator = new Comparator<Product>() {
+					@Override
+					public int compare(Product p1, Product p2) {
+						return p1.getPrice().compareTo(p2.getPrice());
+					}
+					list.sort(comparator);
+				}
+			}	
+		}
+
+	3 Comparator objeto de expressão lambda com chaves
+
+		public class Program {
+			public static void main(String[] args) {
+				List<Product> list = new ArrayList<>();
+				
+				list.add(new Product("TV",900.00));
+				list.add(new Product("Notebook", 1200.00));
+				list.add(new Product("Tablet", 450.00));
+				
+				Comparator<Product> comp = (p1, p2) -> {
+					return p1.getPrice().compareTo(p2.getPrice());
+				};
+
+				list.sort(comp);
+				
+				System.out.println(list);
+			}
+		}
+
+	4 Comparator objeto de expressão lambda sem chaves
+
+		public class Program {
+			public static void main(String[] args) {
+				List<Product> list = new ArrayList<>();
+				
+				list.add(new Product("TV",900.00));
+				list.add(new Product("Notebook", 1200.00));
+				list.add(new Product("Tablet", 450.00));
+				
+				Comparator<Product> comp = (p1, p2) -> p1.getPrice().compareTo(p2.getPrice());
+
+				list.sort(comp);
+
+				System.out.println(list);
+			}
+		}
+
+	5 Comparator expressão lambda "direto no argumento"
+
+		public class Program {
+			public static void main(String[] args) {
+				List<Product> list = new ArrayList<>();
+				
+				list.add(new Product("TV",900.00));
+				list.add(new Product("Notebook", 1200.00));
+				list.add(new Product("Tablet", 450.00));
+
+				list.sort((p1, p2) -> p1.getPrice().compareTo(p2.getPrice()));
+				
+				System.out.println(list);
+			}
+		}
+
+	6 - Usando função estática
+
+		public static int compareProducts(Product p1, Product p2) {
+			return p1.getPrice().compareTo(p2.getPrice());
+		}
+		public static void main(String[] args) {
+			List<Product> list = new ArrayList<>();
+			list.add(new Product("TV", 900.00));
+			list.add(new Product("Notebook", 1200.00));
+			list.add(new Product("Tablet", 450.00));
+			list.sort(Program::compareProducts);
+			list.forEach(System.out::println);
+		}
+
+------------------------------------------------------------------//----------------------------------------------------------------
+
+Consumer - Utilizada no ForEach ...
+
+
+	1 Consumer objeto de classe separada
+
+		public class ServiceConsumer implements Consumer<Product>{
+			@Override
+			public void accept(Product p) {
+				p.setSalario(p.getSalario()*1.1);
+			}
+		}
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+		
+			produtos.forEach(new ServiceConsumer());
+			produtos.forEach(System.out::println);
+		}
+
+
+	2 Consumer objeto de classe anônima
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			Consumer<Product> consumer = new Consumer<Product>() {
+				@Override
+				public void accept(Product t) {
+					t.setSalario(t.getSalario()*1.1);
+				}	
+			};
+			produtos.forEach(consumer);
+			produtos.forEach(System.out::println);		
+		}
+
+
+	3 Consumer objeto de expressão lambda com chaves
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			Consumer<Product> consumer = p1 -> {
+				p1.setSalario(p1.getSalario()*1.1);
+			};
+			produtos.forEach(consumer);
+			produtos.forEach(System.out::println);
+		}
+
+	4 Consumer objeto de expressão lambda sem chaves
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			Consumer<Product> consumer = p1 -> p1.setSalario(p1.getSalario()*1.1);
+			produtos.forEach(consumer);
+			
+			produtos.forEach(System.out::println);	
+		}
+
+	5 Consumer expressão lambda "direto no argumento"
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.forEach(p1 -> p1.setSalario(p1.getSalario()*1.1));
+			produtos.forEach(System.out::println);
+			
+		}
+
+		public static void ServConsumer(Product p) {
+			p.setSalario(p.getSalario()*1.1);
+		}
+		
+	}
+
+	6 - Usando função estática
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.forEach(Program::ServConsumer);
+			produtos.forEach(System.out::println);
+			
+		}
+
+		public static void ServConsumer(Product p) {
+			p.setSalario(p.getSalario()*1.1);
+		}
+
+	7 - Usando uma função estática no produto	
+
+		public class Product {
+			private String name;
+			private Double salario;
+			
+			.
+			.
+			.
+			
+			public static void modifSalario(Product p) {
+				p.setSalario(p.getSalario()*1.1);
+			}
+		}
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.forEach(Product::modifSalario);
+			produtos.forEach(System.out::println);
+			
+		}
+
+	8 - Usando uma função não estática no produto
+
+		public class Product {
+			private String name;
+			private Double salario;
+			
+			.
+			.
+			.
+		
+			public void modifSalario2() {
+				setSalario(getSalario()*1.1);
+			}
+		}
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.forEach(Product::modifSalario2);
+			produtos.forEach(System.out::println);
+			
+		} 
+
+		
+
+------------------------------------------------------------------//----------------------------------------------------------------
+
+Predicate - Utilizada no RemoveIf ...
+
+
+	1 Predicate objeto de classe separada
+
+		public class ServicePredicate implements Predicate<Product>{
+			@Override
+			public boolean test(Product p) {
+				return p.getSalario() <= 100;
+			}
+		}
+
+		public static void main(String[] args) {
+
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.removeIf(new ServicePredicate());
+			
+			produtos.forEach(System.out::println);
+		}
+
+
+	2 Predicate objeto de classe anônima
+
+		public static void main(String[] args) {
+		
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			Predicate<Product> predicate = new Predicate<Product>() {
+				@Override
+				public boolean test(Product p) {
+					return p.getSalario() <= 100;
+				}
+			};
+			
+			produtos.removeIf(predicate);
+			
+			produtos.forEach(System.out::println);
+		}
+
+
+	3 Predicate objeto de expressão lambda com chaves
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			Predicate<Product> predicate = p -> {
+				return p.getSalario() <= 100;
+			};
+			
+			produtos.removeIf(predicate);
+			
+			produtos.forEach(System.out::println);
+		}
+
+	4 Predicate objeto de expressão lambda sem chaves
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			Predicate<Product> predicate = p -> p.getSalario() <= 100;
+			
+			
+			produtos.removeIf(predicate);
+			
+			produtos.forEach(System.out::println);
+		}
+
+	5 Predicate expressão lambda "direto no argumento"
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.removeIf( p -> p.getSalario() <= 100);
+			
+			produtos.forEach(System.out::println);
+		}
+
+	6 - Usando função estática
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+			
+			produtos.removeIf(Program::predicateS);
+			produtos.forEach(System.out::println);
+		}
+		
+		public sstatic boolean predicateS(Product p) {
+			return p.getSalario() <= 100;
+		}	
+
+	7 - Usando uma função estática no produto	
+
+		public class Product {
+			private String name;
+			private Double salario;
+
+				.
+				.
+				.
+
+			public static boolean selectSalario(Product p) {
+				return p.getSalario() <= 100;
+			}
+		}
+
+		public class Program {
+			public static void main(String[] args) {
+				
+				Locale.setDefault(Locale.US);
+				
+				List<Product> produtos = new ArrayList<>();
+				produtos.add(new Product("TV", 900.00));
+				produtos.add(new Product("Mouse", 50.00));
+				produtos.add(new Product("Tablet", 350.00));
+				produtos.add(new Product("HD Case", 80.90));
+				
+				produtos.removeIf(Product::selectSalario);
+				
+				produtos.forEach(System.out::println);
+			}
+		}
+
+	8 - Usando uma função não estática no produto
+
+		public class Product {
+			private String name;
+			private Double salario;
+
+				.
+				.
+				.
+
+			public boolean selectSalario2() {
+				return getSalario() <= 100;
+			}
+		}
+
+			public static void main(String[] args) {
+				
+				Locale.setDefault(Locale.US);
+				
+				List<Product> produtos = new ArrayList<>();
+				produtos.add(new Product("TV", 900.00));
+				produtos.add(new Product("Mouse", 50.00));
+				produtos.add(new Product("Tablet", 350.00));
+				produtos.add(new Product("HD Case", 80.90));
+				
+				produtos.removeIf(Product::selectSalario2);
+				
+				produtos.forEach(System.out::println);
+			} IF 
+
+----------------------------------------------------------------------//------------------------------------------------------------
+
+Function - Utilizada no map 
+
+	1 Function objeto de classe separada
+
+		public class ServiceFunction implements Function<Product, String>{
+			@Override
+			public String apply(Product p) {
+				return p.getName().toUpperCase();
+			}
+		}
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								//Convertendo list para stream
+								//map, aplica a todos os membros da coleção
+								//Coloca tudo de volta no List
+			List<String> names = produtos.stream().map(new ServiceFunction()).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}
+
+	2 Function objeto de classe anônima
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								
+			Function<Product, String> function = new Function<Product, String>(){
+				@Override
+				public String apply(Product p) {
+					return p.getName().toUpperCase();
+				}
+			};
+			
+			List<String> names = produtos.stream().map(function).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}
+
+	3 Function objeto de expressão lambda com chaves
+
+		public static void main(String[] args) {
+		
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								
+			Function<Product, String> function = p -> {
+				return p.getName().toUpperCase();
+			};
+			
+			List<String> names = produtos.stream().map(function).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+
+		}
+
+	4 Function objeto de expressão lambda sem chaves
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								
+			Function<Product, String> function = p -> p.getName().toUpperCase();		
+			
+			List<String> names = produtos.stream().map(function).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}		
+
+	5 Function expressão lambda "direto no argumento"
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								
+			List<String> names = produtos.stream().map( p -> p.getName().toUpperCase()).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}
+
+	6 - Usando função estática
+
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+														//Utilizando uma função Estática da classe Program
+			List<String> names = produtos.stream().map( Program::functionUC ).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}
+		public static String functionUC(Product p) {
+			return p.getName().toUpperCase();
+		}
+
+	7 - Usando uma função estática no produto	
+
+		public class Product { 
+			private String name;
+			private Double salario;
+				.
+				.
+				.
+			public static String functionF(Product p) {
+				return p.getName().toUpperCase();
+			}
+		}
+
+		public static void main(String[] args) {
+		
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+														//Função estática da classe Product
+			List<String> names = produtos.stream().map( Product::functionF ).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}
+
+	8 - Usando uma função não estática no produto
+
+		public class Product {
+			private String name;
+			private Double salario;
+				.
+				.
+				.
+			public String functionF2(){
+				return getName().toUpperCase();
+			}
+		}
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								
+			List<String> names = produtos.stream().map( Product::functionF2 ).collect(Collectors.toList());
+			
+			names.forEach(System.out::println);
+		}
+
+---------------------------------------------------------------------//-------------------------------------------------------------
+
+Criando funções que recebem funções como paramêtros 
+
+	public class ProductService {
+		public Double FilterRum(List<Product> produtos, Predicate predicate) {
+			Double soma = 0.0;
+			for(Product p : produtos) {
+				if(predicate.test(p)) {
+					soma+=p.getSalario();
+				}
+			}
+			return soma;
+		}
+	}
+
+	public class Program {
+		public static void main(String[] args) {
+			
+			Locale.setDefault(Locale.US);
+			
+			List<Product> produtos = new ArrayList<>();
+			produtos.add(new Product("TV", 900.00));
+			produtos.add(new Product("Mouse", 50.00));
+			produtos.add(new Product("Tablet", 350.00));
+			produtos.add(new Product("HD Case", 80.90));
+								
+			ProductService ps = new ProductService();
+			System.out.println(ps.FilterRum(produtos, p -> ((Product) p).getName().charAt(0) == 'T'));
+		}
+	}
+
+--------------------------------------------------------------------//--------------------------------------------------------------
+
+Stream
+
+	Operações Intermediárias
+
+		. filter
+		. map
+		. flatmap
+		. peek
+		. distinct
+		. sorted
+		. skip
+		. limit(*)
+
+		* short-circuit
+
+	Operações Terminais
+
+		. forEach
+		. forEachOrdered
+		. toArray
+		. reduce
+		. collect
+		. min
+		. max
+		. count 
+		. anyMatch(*)
+		. allMatch(*)
+		. noneMatch(*)
+		. findFirst(*)
+		. findAny(*)
+
+		* short-circuit
+
+
+		public static void main(String[] args) {
+		
+			Locale.setDefault(Locale.US);
+			
+			List<Integer> list = Arrays.asList(1,2,3,4,5,6);
+			Stream<Integer> st1 = list.stream().map(x -> x*100);
+		
+			System.out.println(Arrays.toString(st1.toArray()));
+			System.out.println(list);
+			
+			Stream<String> st2 = Stream.of("Joao","Maria","Jose");
+			System.out.println(Arrays.toString(st2.toArray()));
+			
+			Stream<Integer> st3 = Stream.iterate(0, x -> x+2);
+			System.out.println(Arrays.toString(st3.limit(10).toArray()));
+												
+			/*								  Vetor de 2 posições
+																	Cláusula
+																							Sempre a posição p[0]
+			*/
+			Stream<Long> st4 = Stream.iterate(new Long[] {0L, 1L}, p -> new Long[] {p[1], p[0]+p[1]}).map(p -> p[0]);
+			System.out.println(Arrays.toString(st4.limit(10).toArray()));
+
+		}
+
+		public static void main(String[] args) {
+		
+			List<Integer> list1 = Arrays.asList(1,2,3,4,5,6);
+			
+			Stream<Integer> st1 = list1.stream().map(p -> p*2);
+			
+			System.out.println(list1);
+			//System.out.println(st1.collect(Collectors.toList()));
+			System.out.println(Arrays.toString(st1.toArray()));
+			
+			List<Integer> list2 = list1.stream().filter(p ->(p%2) != 0).map(p -> p*100).collect(Collectors.toList());			
+			list2.forEach(System.out::println);
+			
+			List<String> vogais = Arrays.asList("a","e","i","o","u");
+			
+			String vogaisJuntas = vogais.stream().reduce("", (x,y) -> x+y);
+			System.out.println(vogaisJuntas);
+			
+
+
+			Stream<String> nomes = Stream.of("V","S","F","T","M");
+			System.out.println(Arrays.toString(nomes.toArray()));
+			
+			Stream<Integer> dezena = Stream.of(0,1,2,3,4,5,6,7,8,9);
+			System.out.println(Arrays.toString(dezena.toArray()));
+			
+			Stream<Integer> multiplosDois = Stream.iterate(1, x -> x*2);
+			System.out.println(Arrays.toString(multiplosDois.limit(20).toArray()));
+			
+			Stream<Long> longs = Stream.iterate(new Long[] {0L,1L}, p -> new Long[] {p[1], p[0]+p[1]}).map(p -> p[0]);
+			System.out.println(Arrays.toString(longs.limit(10).toArray()));
+			
+
+			List<Integer> numeros = Arrays.asList(3, 4, 5, 10, 7);
+			int i = numeros.stream().map(p -> p*10).reduce(0, (x,y) -> x+y);
+			System.out.println(i);
+			
+			
+			List<Integer> impares = numeros.stream().filter(p -> (p%2) != 0).map(p -> p+1).collect(Collectors.toList());
+			List<Integer> pares = numeros.stream().filter(p -> (p%2) == 0).collect(Collectors.toList());
+
+			System.out.println(impares);
+			System.out.println(pares);
+			impares.addAll(pares);
+			System.out.println(impares);
+			
+		}
+
+

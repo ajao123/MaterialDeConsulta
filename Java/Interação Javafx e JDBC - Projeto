@@ -1,0 +1,1292 @@
+Interação Javafx e JDBC - Projeto
+	
+	--module-path C:\java-libs\javafx-sdk\lib --add-modules=javafx.fxml,javafx.controls
+	
+	Parte 1 - TelaMainView
+
+		Classe Main Padrão
+
+			public class Main extends Application {
+
+				@Override
+				public void start(Stage primaryStage) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MainView.fxml"));
+						Parent parent = loader.load();			//Chama o load, carrega a View
+						Scene mainScene = new Scene(parent);	//Cena Principal, sendo parent o objeto principal da View
+						primaryStage.setScene(mainScene);		//Palco da Cena
+						primaryStage.setTitle("Sample JavaFX application");	//Titulo do Palco
+						primaryStage.show();	//Mostrar o Palco
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
+				public static void main(String[] args) {
+					launch(args);
+				}
+			}
+
+		Tela MainView Inicial
+
+			<?xml version="1.0" encoding="UTF-8"?>
+
+			<?import javafx.scene.layout.AnchorPane?>
+
+			<AnchorPane xmlns:fx="http://javafx.com/fxml/1">
+				<!-- TODO Add Nodes -->
+			</AnchorPane>
+
+	Parte 2 - MainViewDesign
+
+		Classe MainView Alterada
+
+			<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1">
+			   <content>
+			      <VBox prefHeight="348.0" prefWidth="536.0">
+			         <children>
+			            <MenuBar>
+			              <menus>
+			                <Menu mnemonicParsing="false" text="Registration">
+			                  <items>
+			                    <MenuItem mnemonicParsing="false" text="Seller" />
+			                        <MenuItem mnemonicParsing="false" text="Department" />
+			                  </items>
+			                </Menu>
+			                <Menu mnemonicParsing="false" text="Help">
+			                  <items>
+			                    <MenuItem mnemonicParsing="false" text="About" />
+			                  </items>
+			                </Menu>
+			              </menus>
+			            </MenuBar>
+			         </children>
+			      </VBox>
+			   </content>
+			</ScrollPane>
+
+		Classe Main Alterada
+
+			public class Main extends Application {
+
+				@Override
+				public void start(Stage primaryStage) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MainView.fxml"));
+						
+						ScrollPane scrollPane = loader.load();	//Trocando de Parent para ScrollPane
+						Scene mainScene = new Scene(scrollPane);
+						
+						scrollPane.setFitToHeight(true);		//Faz com que o VBox, que está dentro do ScrollPane,
+						scrollPane.setFitToWidth(true);			//preencha totalmente o ScrollPane
+						
+						primaryStage.setScene(mainScene);
+						primaryStage.setTitle("Sample JavaFX application");
+						primaryStage.show();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
+				public static void main(String[] args) {
+					launch(args);
+				}
+			}
+
+	Parte 3 - MainViewController - Controlar as ferramentas presentes na View Principal
+
+		Nenhuma Alteração na Classe Main
+
+		MainViewDesign
+
+			<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainViewController">
+			   <content>
+			      <VBox prefHeight="348.0" prefWidth="536.0">
+			         <children>
+			            <MenuBar>
+			              <menus>
+			                <Menu mnemonicParsing="false" text="Registration">
+			                  <items>
+			                    <MenuItem fx:id="menuItemSeller" mnemonicParsing="false" onAction="#onMenuItemSellerAction" text="Seller" />
+			                        <MenuItem fx:id="menuItemDepartment" mnemonicParsing="false" onAction="#onMenuItemDepartmentAction" text="Department" />
+			                  </items>
+			                </Menu>
+			                <Menu mnemonicParsing="false" text="Help">
+			                  <items>
+			                    <MenuItem fx:id="menuItemAbout" mnemonicParsing="false" onAction="#onMenuItemAboutAction" text="About" />
+			                  </items>
+			                </Menu>
+			              </menus>
+			            </MenuBar>
+			         </children>
+			      </VBox>
+			   </content>
+			</ScrollPane>
+
+
+		Classe MainViewController
+
+			public class MainViewController implements Initializable{
+
+				@FXML
+				private MenuItem menuItemSeller;	//MenuItem do MainViewDesign
+				
+				@FXML
+				private MenuItem menuItemDepartment;	//MenuItem do MainViewDesign
+				
+				@FXML
+				private MenuItem menuItemAbout;		//MenuItem do MainViewDesign
+							
+				@FXML
+				public void onMenuItemSellerAction() {		//Ação ao selecionar o menuItemSeller
+					System.out.println("onMenuItemSeller");
+				}
+				
+				@FXML
+				public void onMenuItemDepartmentAction() {		//Ação ao selecionar o menuItemDepartment
+					System.out.println("onMenuItemDepartment"); 
+				}
+				
+				@FXML
+				public void onMenuItemAboutAction() {		//Ação ao selecionar o menuItemAbout
+					System.out.println("onMenuItemAbout"); 
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {		
+					// TODO Auto-generated method stub
+				}
+			}
+
+	Parte 4 - AboutView 
+
+
+		Classe Alerts 
+
+			public class Alerts {			//Titulo, Cabeçalho, Texto, Simbolo
+				public static void showAlert(String title, String header, String content, AlertType type) {
+					Alert alert = new Alert(type);
+					alert.setTitle(title);
+					alert.setHeaderText(header);
+					alert.setContentText(content);
+					alert.show();
+				}
+			}
+
+		Classe Constraints
+
+			public class Constraints {
+
+				//Restringe para aceitar apenas valores Inteiros
+
+				public static void setTextFieldInteger(TextField txt) {
+					txt.textProperty().addListener((obs, oldValue, newValue) -> {
+				        if (newValue != null && !newValue.matches("\\d*")) {
+				        	txt.setText(oldValue);
+				        }
+				    });
+				}
+
+				//Restringe para receber apenas valores de até uma determinada extensão
+
+				public static void setTextFieldMaxLength(TextField txt, int max) {
+					txt.textProperty().addListener((obs, oldValue, newValue) -> {
+				        if (newValue != null && newValue.length() > max) {
+				        	txt.setText(oldValue);
+				        }
+				    });
+				}
+
+				//Restringe para receber apenas valores Double
+
+				public static void setTextFieldDouble(TextField txt) {
+					txt.textProperty().addListener((obs, oldValue, newValue) -> {
+					    	if (newValue != null && !newValue.matches("\\d*([\\.]\\d*)?")) {
+			                    txt.setText(oldValue);
+			                }
+					    });
+				}
+			}
+
+		New FXML About
+
+			<VBox prefHeight="204.0" prefWidth="471.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.1">
+	   			<children>
+			      <Label text="About">
+			         <font>
+			            <Font name="System Bold" size="18.0" />
+			         </font>
+			         <padding>
+			            <Insets bottom="10.0" left="20.0" top="10.0" />
+			         </padding>
+			      </Label>
+			      <Label text="JavaFX application demo">
+			         <padding>
+			            <Insets left="20.0" />
+			         </padding>
+			      </Label>
+			   </children>
+			</VBox>
+
+
+		Classe Main Alterada
+
+			public class Main extends Application {
+
+				private static Scene mainScene;	//Modificamos a variável mainScene, fizemos isso para poder retorna-la e utilizar 
+												//essa cena em outras classes, a fim de aproveidar o que foi implementado nessa Cena
+				@Override
+				public void start(Stage primaryStage) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MainView.fxml"));
+						
+						ScrollPane scrollPane = loader.load();
+
+						mainScene = new Scene(scrollPane);
+						
+						scrollPane.setFitToHeight(true);
+						scrollPane.setFitToWidth(true);
+						
+						primaryStage.setScene(mainScene);
+						primaryStage.setTitle("Sample JavaFX application");
+						primaryStage.show();
+
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				//Retornando a Scene Principal
+				public static Scene getMainScene() {
+					return mainScene;
+				}
+
+				public static void main(String[] args) {
+					launch(args);
+				}
+			}
+
+		Classe MainViewController
+
+			public class MainViewController implements Initializable{
+	
+				@FXML
+				private MenuItem menuItemSeller;
+				
+				@FXML
+				private MenuItem menuItemDepartment;
+				
+				@FXML
+				private MenuItem menuItemAbout;
+				
+				@FXML
+				public void onMenuItemSellerAction() {
+					System.out.println("onMenuItemSeller");
+				}
+				
+				@FXML
+				public void onMenuItemDepartmentAction() {
+					System.out.println("onMenuItemDepartment"); 
+				}
+				
+				@FXML
+				public void onMenuItemAboutAction() {
+					loadView("/gui/About.fxml");
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {	
+				}
+
+				private synchronized void loadView(String absoluteName) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+						VBox newVBox = loader.load();	//Instanciando VBox
+
+						//Recebendo a Scene Principal
+						Scene mainScene = Main.getMainScene();	
+						
+						//Guardando no mainVBox, o que está contido dentro do ScrollPane da Scene principal que no caso
+						//é um VBox, mas e necessário fazer um Casting, de Root para ScrollPane e VBox
+						VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();	
+					
+						//Primeiro, guardamos o que está contido no mainVBox no Node mainMenu, no caso o Menu de opções,
+						//Fazemos isso porque e necessário apagar o mainVBox, caso contrário, concatenaremos diversos 
+						//contents nele, gerando problemas na View
+						Node mainMenu = mainVBox.getChildren().get(0);
+						mainVBox.getChildren().clear();
+						
+						//Adicionamos o mainMenu, que contem os nodes que estavam dentro do mainVBox, antes do clear(Menu)
+						mainVBox.getChildren().add(mainMenu);
+
+						//E Adicionamos os filhos do VBox que atualizara a Scene Principal
+						mainVBox.getChildren().addAll(newVBox.getChildren());
+						
+					}catch(IOException e) {
+						Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
+					}
+				}
+			}
+
+	Parte 5 - Criando DepartmentList
+
+	 	public class MainViewController implements Initializable{
+			
+			//Única parte do MainViewController que foi alterada.	
+			@FXML
+			public void onMenuItemDepartmentAction() {
+				loadView("/gui/DepartmentList.fxml");
+			}
+		}
+
+		FXML DepartmentList
+
+		<?xml version="1.0" encoding="UTF-8"?>
+
+		<?import javafx.geometry.Insets?>
+		<?import javafx.scene.control.Button?>
+		<?import javafx.scene.control.Label?>
+		<?import javafx.scene.control.TableColumn?>
+		<?import javafx.scene.control.TableView?>
+		<?import javafx.scene.control.ToolBar?>
+		<?import javafx.scene.layout.VBox?>
+		<?import javafx.scene.text.Font?>
+
+
+		<VBox prefHeight="345.0" prefWidth="397.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.1">
+		   <children>
+		      <Label text="Department Registration">
+		         <font>
+		            <Font name="System Bold" size="14.0" />
+		         </font>
+		         <padding>
+		            <Insets left="5.0" top="5.0" />
+		         </padding>
+		      </Label>
+		      <ToolBar prefHeight="40.0" prefWidth="200.0">
+		        <items>
+		          <Button mnemonicParsing="false" text="New" />
+		        </items>
+		      </ToolBar>
+		      <TableView prefHeight="200.0" prefWidth="200.0">
+		        <columns>
+		          <TableColumn prefWidth="75.0" text="Id" />
+		          <TableColumn prefWidth="75.0" text="Name" />
+		        </columns>
+		      </TableView>
+		   </children>
+		</VBox>
+
+	Parte 6 - DepartmentListController
+
+
+		Classe DepartmentListController - Única que sofreu alterações
+
+		public class DepartmentListController implements Initializable{
+
+			//Tabela de Department
+			@FXML
+			private TableView<Department> tableViewDepartment;	
+			
+			//Coluna que guarda os Ids
+			@FXML
+			private TableColumn<Department, Integer> tableColumnId;
+			
+			//Coluna que guarda os Nomes
+			@FXML
+			private TableColumn<Department, String> tableColumnName;
+
+			//Botão para adicionar um novo Department(Função ainda não implementada)
+			@FXML
+			private Button btNew;
+			
+			@FXML
+			public void onBtNewAction() {
+				System.out.println("onBtNewAction");
+			}
+			
+			@Override
+			public void initialize(URL url, ResourceBundle rb) {
+				initializeNodes();
+			}
+			
+				//Função para inicializar a tabela e configurar seu tamanho de acordo com o tamanho da janela
+			private void initializeNodes() {
+
+				//Inicialização padrão das tabelas de acordo com o nomes das variáveis presentes na classe Department
+				tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+				tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
+				
+				//Configuração Padrão para a tabela se encaixar de maneira apropriada de acordo com o tamanho da janela
+				Stage stage = (Stage) Main.getMainScene().getWindow();
+				tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
+			}
+		}
+			
+	Parte 7 - DepartmentService
+
+		Classe Department Service - Pacote model.services(new)
+
+			package model.services;
+
+			import java.util.ArrayList;
+			import java.util.List;
+
+			import model.entities.Department;
+
+			public class DepartmentService {
+
+				public List<Department> findAll() {
+					List<Department> list = new ArrayList<>();
+					list.add(new Department(1, "Books"));
+					list.add(new Department(2, "Computers"));
+					list.add(new Department(3, "Electronics"));
+					return list;
+				}
+
+			}
+
+		Classe DepartmentListController(Update)
+
+			package gui;
+
+			public class DepartmentListController implements Initializable {
+				
+				//Classe DepartmentService, criada para receber os dados
+				private DepartmentService service;
+				
+				@FXML
+				private TableView<Department> tableViewDepartment;
+
+				@FXML
+				private TableColumn<Department, Integer> tableColumnId;
+
+				@FXML
+				private TableColumn<Department, String> tableColumnName;
+
+				@FXML
+				private Button btNew;
+
+				//Novo obsList criado
+				private ObservableList<Department> obsList;
+				
+				@FXML
+				public void onBtNewAction() {
+					System.out.println("onBtNewAction");
+				}
+
+				//Método para evitar depedência, ou seja, a variável service não é iniciada diretamente pela classe, ela recebe um service
+				//da classe MainViewController
+				public void setDepartmentService(DepartmentService service) {
+					this.service = service;
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {
+					initializeNodes();
+				}
+
+				private void initializeNodes() {
+					tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+					tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+					Stage stage = (Stage) Main.getMainScene().getWindow();
+					tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
+				}
+
+				/*Responsável por :
+					1 - Acessar o Serviço
+					2 - Carregar os Departamentos
+					3 - Colocar os Departamentos na obsList
+				*/
+				
+				public void updateTableView() {
+					//Verificando para evitar erros
+					if(service == null) {
+						throw new IllegalStateException("Service was null");
+					}
+					//Recebendo uma lista de  Departments via service.findAll();
+					List<Department> list = service.findAll();
+					//Passando o arquivos do list para o obsList
+					obsList = FXCollections.observableArrayList(list);
+					//Setando os valores na tabela
+					tableViewDepartment.setItems(obsList);
+				}
+			}
+
+		Classe MainViewController(Update)
+
+			package gui;
+
+
+			import model.services.DepartmentService;
+
+			public class MainViewController implements Initializable{
+				
+				@FXML
+				private MenuItem menuItemSeller;
+				
+				@FXML
+				private MenuItem menuItemDepartment;
+				
+				@FXML
+				private MenuItem menuItemAbout;
+				
+				@FXML
+				public void onMenuItemSellerAction() {
+					System.out.println("onMenuItemSeller");
+				}
+				
+				@FXML
+				public void onMenuItemDepartmentAction() {
+					//Metodo loadView2
+					loadView2("/gui/DepartmentList.fxml");
+				}
+				
+				@FXML
+				public void onMenuItemAboutAction() {
+					loadView("/gui/About.fxml");
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {	
+				}
+
+				private synchronized void loadView(String absoluteName) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+						VBox newVBox = loader.load();
+						
+						Scene mainScene = Main.getMainScene();
+						
+						VBox mainVBox =(VBox) ((ScrollPane) mainScene.getRoot()).getContent();
+					
+						Node mainMenu = mainVBox.getChildren().get(0);
+						mainVBox.getChildren().clear();
+						
+						mainVBox.getChildren().add(mainMenu);
+						mainVBox.getChildren().addAll(newVBox.getChildren());
+						
+					}catch(IOException e) {
+						Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
+					}
+				}
+				
+				//Criamos um loadview2 como protipo para conseguirmos acessar a lista de departamentos e atualiza somente //quando a acesarmos
+				private synchronized void loadView2(String absoluteName) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+						VBox newVBox = loader.load();
+						
+						Scene mainScene = Main.getMainScene();
+						
+						VBox mainVBox =(VBox) ((ScrollPane) mainScene.getRoot()).getContent();
+					
+						Node mainMenu = mainVBox.getChildren().get(0);
+						mainVBox.getChildren().clear();
+						
+						mainVBox.getChildren().add(mainMenu);
+						mainVBox.getChildren().addAll(newVBox.getChildren());
+						
+						
+						//Chama a função DepartmentListController que possui o acesso as ferramentas do DepartmentList
+						DepartmentListController controller = loader.getController();
+						
+						//Passa um DepartmentService, em vez de iniciar diretamente npo DepartmentListController, a fim de 
+						//evitar a existência de dependencias
+						controller.setDepartmentService(new DepartmentService());
+						
+						//Atualizamos a Tabela com as informações dos Departamentos
+						controller.updateTableView();
+						
+					}catch(IOException e) {
+						Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
+					}
+				}
+			}
+
+	Parte 8 - Ação de inicialização como parâmetro(Consumer)
+
+		Classe MainViewController
+
+			package gui;
+
+
+			public class MainViewController implements Initializable{
+				
+				@FXML
+				private MenuItem menuItemSeller;
+				
+				@FXML
+				private MenuItem menuItemDepartment;
+				
+				@FXML
+				private MenuItem menuItemAbout;
+				
+				@FXML
+				public void onMenuItemSellerAction() {
+					System.out.println("onMenuItemSeller");
+				}
+				
+				@FXML
+				public void onMenuItemDepartmentAction() {
+					
+					//Como segundo paramêtro temos um Consumer, que tem a função de criar um DepartmentController
+					//Iniciar o DepartmentService
+					//Dar update na Tabela de departamentos
+
+					loadView("/gui/DepartmentList.fxml", (DepartmentListController controller) ->{
+						controller.setDepartmentService(new DepartmentService());
+						controller.updateTableView();
+					});
+				}
+				
+				@FXML
+				public void onMenuItemAboutAction() {
+				//Passamos uma função que não faz nada como segundo paramêtro, porque não é necessário que nada seja feito
+					loadView("/gui/About.fxml", x -> {});
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {	
+				}
+
+				//Metodo loadView, para aceitar um consumer como paramêntro, a fim de consiguir para todos as VBox que usarão
+				//a função loadView, não sendo necessário criar diversos loadViews a cada chamada de Carregamento que exija 
+				//a execução de uma função específica
+
+				private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+						VBox newVBox = loader.load();
+						
+						Scene mainScene = Main.getMainScene();
+						
+						VBox mainVBox =(VBox) ((ScrollPane) mainScene.getRoot()).getContent();
+					
+						Node mainMenu = mainVBox.getChildren().get(0);
+						mainVBox.getChildren().clear();
+						
+						mainVBox.getChildren().add(mainMenu);
+						mainVBox.getChildren().addAll(newVBox.getChildren());
+						//Variável controller do tipo T, ou seja, pode ser tanto DepartmentList, About, ...
+						T controller = loader.getController();
+
+						//Aplicando o consumer no controller
+						initializingAction.accept(controller);
+						
+					}catch(IOException e) {
+						Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
+					}
+				}
+			}
+
+	Parte 9 - Adicionando acesso ao banco de dados
+
+		1 - Adicionamos o pacote db que contém as classes:
+		
+			DB
+			Db.Exception
+			DbIntegrityException
+
+		2 - Adicionamos o pacote model.dao que contém:
+		
+			Classe DaoFactory
+			Interface DepartmentDao
+			Interface SellerDao
+
+		3 - Adicionamos o pacote model.dao.impl que contém as classes:
+
+			DepartmentDaoJDBC
+			SellerDaoJDBC
+
+
+		Alteramos a classe DepartmentService
+
+			public class DepartmentService {
+				private DepartmentDao dao = DaoFactory.createDepartmentDao();
+				
+				public List<Department> findAll() {
+					return dao.findAll();
+				}
+			}
+
+	Parte 10 - DepartmentForm(dialog) design
+
+		Classe DepartmentListController
+
+			public class DepartmentListController implements Initializable {
+		
+				//Classe DepartmentService, criada para receber os dados
+				private DepartmentService service;
+					
+					@FXML
+					private TableView<Department> tableViewDepartment;
+				
+					@FXML
+					private TableColumn<Department, Integer> tableColumnId;
+				
+					@FXML
+					private TableColumn<Department, String> tableColumnName;
+				
+					@FXML
+					private Button btNew;
+				
+					//Novo obsList criado
+					private ObservableList<Department> obsList;
+					
+					
+					//Recebe como paramêtro o evento relacionado ao botão btNew
+					@FXML
+					public void onBtNewAction(ActionEvent event) {
+						//Envia para função currentStage a fim de obter a Scene em que ocorreu esse evento
+						Stage parentStage = Utils.currentStage(event);
+						//Envia para o createDialogForm, que instanciara a caixa de diálogo
+						createDialogForm("/gui/DepartmentForm.fxml", parentStage);
+					}
+				
+					//Método para evitar depedência, ou seja, a variável service não é iniciada diretamente pela classe, ela recebe um service
+					//da classe MainViewController
+					public void setDepartmentService(DepartmentService service) {
+						this.service = service;
+					}
+					
+					@Override
+					public void initialize(URL url, ResourceBundle rb) {
+						initializeNodes();
+					}
+				
+					private void initializeNodes() {
+						tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+						tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
+				
+						Stage stage = (Stage) Main.getMainScene().getWindow();
+						tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
+					}
+				
+					/*Responsável por :
+						1 - Acessar o Serviço
+						2 - Carregar os Departamentos
+						3 - Colocar os Departamentos na obsList
+					*/
+					public void updateTableView() {
+						//Verificando para evitar erros
+						if(service == null) {
+							throw new IllegalStateException("Service was null");
+						}
+						//Recebendo uma lista de  Departments via service.findAll();
+						List<Department> list = service.findAll();
+						//Passando o arquivos do list para o obsList
+						obsList = FXCollections.observableArrayList(list);
+						//Setando os valores na tabela
+						tableViewDepartment.setItems(obsList);
+					}
+					
+					
+					//Codigo para Instanciar a janela de dialogo
+					private void createDialogForm(String absoluteName, Stage parentStage) {
+						try {
+							FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+							Pane pane = loader.load();
+							
+							Stage dialogStage = new Stage();
+							dialogStage.setTitle("Enter Department data");
+							dialogStage.setScene(new Scene(pane));
+							
+							//Define se a janela pode ou não ser redimensionada
+							dialogStage.setResizable(false);
+							
+							//Stage que o metodo foi acionado, (Pai da janela)
+							dialogStage.initOwner(parentStage);
+							
+							//Definir se a janela será modal ou terá outro comportamento, nesse caso, modal, travada
+							dialogStage.initModality(Modality.WINDOW_MODAL);
+							
+							dialogStage.showAndWait();
+							
+						}catch(IOException e) {
+							Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
+						}
+					}
+				
+			}
+
+		Classe Utils
+
+			public class Utils {
+				//Metodo que retorna a Stage que aconteceu um determinado evento passada como paramêtro
+				public static Stage currentStage(ActionEvent event) {
+					return (Stage) ((Node) event.getSource()).getScene().getWindow();
+				}
+			}
+
+		FXML DepartmentForm
+
+			<AnchorPane prefHeight="128.0" prefWidth="517.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1">
+	   			<children>
+			      <GridPane layoutX="55.0" layoutY="66.0" prefHeight="97.0" prefWidth="440.0" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="20.0">
+			        <columnConstraints>
+			          <ColumnConstraints hgrow="SOMETIMES" maxWidth="142.0" minWidth="10.0" prefWidth="37.0" />
+			            <ColumnConstraints hgrow="SOMETIMES" maxWidth="257.0" minWidth="10.0" prefWidth="191.0" />
+			          <ColumnConstraints hgrow="SOMETIMES" maxWidth="189.0" minWidth="10.0" prefWidth="189.0" />
+			        </columnConstraints>
+			        <rowConstraints>
+			          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+			          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+			          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+			        </rowConstraints>
+			         <children>
+			            <Label text="Id" />
+			            <Label text="Name" GridPane.rowIndex="1" />
+			            <TextField editable="false" GridPane.columnIndex="1" />
+			            <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
+			            <Label textFill="RED" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+			            <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+			               <children>
+			                  <Button mnemonicParsing="false" text="Save" />
+			                  <Button mnemonicParsing="false" text="Cancel" />
+			               </children>
+			            </HBox>
+			         </children>
+			      </GridPane>
+			   </children>
+			</AnchorPane>
+
+	Parte 11 - Passando um objeto Department para o formulário
+
+		Classe DepartmentListController
+
+			public class DepartmentListController implements Initializable {
+				
+				//Classe DepartmentService, criada para receber os dados
+				private DepartmentService service;
+				
+				@FXML
+				private TableView<Department> tableViewDepartment;
+
+				@FXML
+				private TableColumn<Department, Integer> tableColumnId;
+
+				@FXML
+				private TableColumn<Department, String> tableColumnName;
+
+				@FXML
+				private Button btNew;
+
+				//Novo obsList criado
+				private ObservableList<Department> obsList;
+				
+				
+				//Recebe como paramêtro o evento relacionado ao botão btNew
+				@FXML
+				public void onBtNewAction(ActionEvent event) {
+					//Envia para função currentStage a fim de obter a Scene em que ocorreu esse evento
+					Stage parentStage = Utils.currentStage(event);
+					//Envia para o createDialogForm, que instanciara a caixa de diálogo
+					Department obj = new Department();
+					createDialogForm(obj , "/gui/DepartmentForm.fxml", parentStage);
+					
+				}
+
+				//Método para evitar depedência, ou seja, a variável service não é iniciada diretamente pela classe, ela recebe um service
+				//da classe MainViewController
+				public void setDepartmentService(DepartmentService service) {
+					this.service = service;
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {
+					initializeNodes();
+				}
+
+				private void initializeNodes() {
+					tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+					tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+					Stage stage = (Stage) Main.getMainScene().getWindow();
+					tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
+				}
+
+
+				public void updateTableView() {
+					
+					if(service == null) {
+						throw new IllegalStateException("Service was null");
+					}
+					
+					List<Department> list = service.findAll();
+
+					obsList = FXCollections.observableArrayList(list);
+
+					tableViewDepartment.setItems(obsList);
+				}
+				
+				
+				//Codigo para Instanciar a janela de dialogo
+				private void createDialogForm(Department obj, String absoluteName, Stage parentStage) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+						Pane pane = loader.load();
+						
+						//Retorna o controlador do DepartmentForm, no caso o DepartmentFormController
+						DepartmentFormController controller = loader.getController();
+						
+						//Através de dele eu iniciarei o Department contido no DepartmentFormController
+						controller.setDepartment(obj);
+						
+						//Carrega os dados, do departamento passado, nos TextFields
+						controller.updateFormData();
+						
+						Stage dialogStage = new Stage();
+						dialogStage.setTitle("Enter Department data");
+						dialogStage.setScene(new Scene(pane));
+						
+
+						dialogStage.setResizable(false);
+						dialogStage.initOwner(parentStage);
+						dialogStage.initModality(Modality.WINDOW_MODAL);
+						
+						dialogStage.showAndWait();
+						
+					}catch(IOException e) {
+						Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
+					}
+				}			
+			}
+		
+		Classe DepartmentFormController
+
+			public class DepartmentFormController implements Initializable{
+
+				private Department entity;
+				
+				@FXML
+				private TextField tfId;
+				
+				@FXML
+				private TextField tfName;
+				
+				@FXML
+				private Label lblError;
+				
+				@FXML
+				private Button btnSave;
+				
+				@FXML
+				private Button btnCancel;
+				
+				@FXML
+				public void onBtnSaveAction() {
+					System.out.println("onBtnSaveAction");
+				}
+				
+				@FXML
+				public void onBtnCancelAction() {
+					System.out.println("onBtnCancelAction");
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {
+					initializeNodes();
+				}
+				
+				public void initializeNodes() {
+					Constraints.setTextFieldInteger(tfId);
+					Constraints.setTextFieldMaxLength(tfName, 30);
+				}
+				
+				public void setDepartment(Department entity) {
+					this.entity = entity;
+				}
+
+				public void updateFormData() {
+					
+					if(entity == null) {
+						throw new IllegalStateException("Entity was null");
+					}
+					
+					tfId.setText(String.valueOf(entity.getId()));
+					tfName.setText(entity.getName());
+				}
+			}
+
+	Parte 12 e 13 - Salvando um novo departamento e Padrão de projeto Observer para atualizar TableView
+
+		Interface DataChangeListener
+
+			public interface DataChangeListener {
+				void onDataChanged();
+			}
+
+		Classe DepartmentService
+
+			public class DepartmentService {
+				private DepartmentDao dao = DaoFactory.createDepartmentDao();
+
+				//Retornando uma list com os Departamentos
+				public List<Department> findAll() {
+					return dao.findAll();
+				}
+				
+
+				//Salva ou Atualiza Departamento no Banco de Dadosd 
+				public void saveOrUpdate(Department obj) {
+					if(obj.getId() == null) {
+						dao.insert(obj);
+					}else {
+						dao.update(obj);
+					}
+				}
+			}
+
+		Classe Utils
+
+			public class Utils {
+				//Metodo que retorna a Stage que aconteceu um determinado evento passada como paramêtro
+				public static Stage currentStage(ActionEvent event) {
+					return (Stage) ((Node) event.getSource()).getScene().getWindow();
+				}
+				
+				public static Integer tryParseToInt(String str) {
+					try {
+						return Integer.parseInt(str);
+					}catch(NumberFormatException e) {
+						return null;
+					}
+				}
+			}
+
+		Classe DepartmentFormController
+
+			public class DepartmentFormController implements Initializable{
+
+				private Department entity;
+				
+				private DepartmentService service;
+				
+				//Lista de Classes que serão notificadas quando determinada ação for realizada
+				//DataChangeListener -> Interface
+				private List<DataChangeListener> dataChangeListeners =  new ArrayList<>();
+				
+				@FXML
+				private TextField tfId;
+				
+				@FXML
+				private TextField tfName;
+				
+				@FXML
+				private Label lblError;
+				
+				@FXML
+				private Button btnSave;
+				
+				@FXML
+				private Button btnCancel;
+				
+				//Setando o DepartamentService, assim poderemos utilizar suas funções e evitar dependências
+				public void setDepartamentService(DepartmentService service) {
+					this.service = service;
+				}
+				
+				//Adicionando lista, uma classe será notificada quando determinada ação for realizada
+				public void subscribeDataChangedListener(DataChangeListener listener) {
+					dataChangeListeners.add(listener);
+				}
+				
+				//Alteramos a função para adicionar um valor no Banco de Dados
+				@FXML
+				public void onBtnSaveAction(ActionEvent event) {
+					
+					//Verificação
+
+					if(entity == null) {
+						throw new IllegalStateException("Entity was null");
+					}
+					if(service == null) {
+						throw new IllegalStateException("Service was null");
+					}
+					
+					try {
+						
+					}catch(DbException e) {
+						Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
+					}
+					
+					//Department entity recebendo o Department a ser guardado
+					entity = getFormData();
+
+					//Salvando o Department no Banco de Dados
+					service.saveOrUpdate(entity);
+					
+					//Chamando função que notifica todas as classes presentes no dataChangeListeners
+					notifyDataChangeListeners();
+					
+					//Fechando a  janela
+					Utils.currentStage(event).close();
+				}
+				
+				//Função que notifica todas as classes do dataChangeListeners
+				private void notifyDataChangeListeners() {
+					for(DataChangeListener listener: dataChangeListeners) {
+						listener.onDataChanged();
+					}
+					
+				}
+				//Função que recebe o que foi digitado nos TextFields de Id e Nome, e criam um Department, que é retornado
+				private Department getFormData() {
+					Department obj = new Department();
+							//Convertendo de String para Int
+					obj.setId(Utils.tryParseToInt(tfId.getText()));
+					obj.setName(tfName.getText());
+					return obj;
+				}
+
+				//Função que fecha a janela quando o Button Cancel for pressionado
+				@FXML
+				public void onBtnCancelAction(ActionEvent event) {
+					Utils.currentStage(event).close();
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {
+					initializeNodes();
+				}
+				
+				public void initializeNodes() {
+					Constraints.setTextFieldInteger(tfId);
+					Constraints.setTextFieldMaxLength(tfName, 30);
+				}
+
+				//Setando Department entity, para evitar dependências
+				
+				public void setDepartment(Department entity) {
+					this.entity = entity;
+				}
+
+				public void updateFormData() {
+					
+					if(entity == null) {
+						throw new IllegalStateException("Entity was null");
+					}
+					
+					tfId.setText(String.valueOf(entity.getId()));
+					tfName.setText(entity.getName());
+				}
+			}
+
+		Classe DepartmentListController
+			//Implementa o DataChangeListener
+			public class DepartmentListController implements Initializable, DataChangeListener {
+	
+				//Classe DepartmentService, criada para receber os dados
+				private DepartmentService service;
+				
+				@FXML
+				private TableView<Department> tableViewDepartment;
+
+				@FXML
+				private TableColumn<Department, Integer> tableColumnId;
+
+				@FXML
+				private TableColumn<Department, String> tableColumnName;
+
+				@FXML
+				private Button btNew;
+
+				//Novo obsList criado
+				private ObservableList<Department> obsList;
+				
+				
+				//Recebe como paramêtro o evento relacionado ao botão btNew
+				@FXML
+				public void onBtNewAction(ActionEvent event) {
+					//Envia para função currentStage a fim de obter a Scene em que ocorreu esse evento
+					Stage parentStage = Utils.currentStage(event);
+					//Envia para o createDialogForm, que instanciara a caixa de diálogo
+					Department obj = new Department();
+					createDialogForm(obj , "/gui/DepartmentForm.fxml", parentStage);
+					
+				}
+
+				//Método para evitar depedência, ou seja, a variável service não é iniciada diretamente pela classe, ela recebe um service
+				//da classe MainViewController
+				public void setDepartmentService(DepartmentService service) {
+					this.service = service;
+				}
+				
+				@Override
+				public void initialize(URL url, ResourceBundle rb) {
+					initializeNodes();
+				}
+
+				private void initializeNodes() {
+					tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+					tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+					Stage stage = (Stage) Main.getMainScene().getWindow();
+					tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
+				}
+
+
+				public void updateTableView() {
+					
+					if(service == null) {
+						throw new IllegalStateException("Service was null");
+					}
+					
+					List<Department> list = service.findAll();
+
+					obsList = FXCollections.observableArrayList(list);
+
+					tableViewDepartment.setItems(obsList);
+				}
+				
+				
+				//Codigo para Instanciar a janela de dialogo
+				private void createDialogForm(Department obj, String absoluteName, Stage parentStage) {
+					try {
+						FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+						Pane pane = loader.load();
+						
+						//Retorna o controlador do DepartmentForm, no caso o DepartmentFormController
+						DepartmentFormController controller = loader.getController();
+						
+						//Seta o Department dentro da classe DepartmentFormController
+						controller.setDepartamentService(new DepartmentService());
+						
+						//Adiciona a Classe DepartmentListController a lista de DataChangedListener que serão notificados
+						controller.subscribeDataChangedListener(this);
+						
+						//Através de dele eu iniciarei o Department contido no DepartmentFormController
+						controller.setDepartment(obj);
+						
+						//Carrega os dados, do departamento passado, nos TextFields
+						controller.updateFormData();
+						
+						Stage dialogStage = new Stage();
+						dialogStage.setTitle("Enter Department data");
+						dialogStage.setScene(new Scene(pane));
+						
+
+						dialogStage.setResizable(false);
+						dialogStage.initOwner(parentStage);
+						dialogStage.initModality(Modality.WINDOW_MODAL);
+						
+						dialogStage.showAndWait();
+						
+					}catch(IOException e) {
+						Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
+					}
+				}
+
+				//Ação que será realizada quando a notificação chegar
+				@Override
+				public void onDataChanged() {
+					updateTableView();
+				}
+				
+			}
+
+	Parte 14 - Implementando Remoção e Atualização de dados
+
+	

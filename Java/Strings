@@ -1,0 +1,68 @@
+Funções para String	
+
+		1 - Passa todos os valores da String para minúsculo
+			original.toLowerCase();
+
+		2 - Passa todos os valores da String para maiúsculo
+			original.toUpperCase(); 
+
+		3 - Tira todos os espaços da String 
+			original.trim();
+
+		4 - Retorna os valores da posição x em diante
+			original.substring(x);
+		
+		5 - Retorna a String presente no intervalo x, y
+			original.substring(x,y);
+
+		6 - Troca todos os valores x por y
+			original.replace('a','x');
+
+		7 - Retorna a primeira posição de x dentro da String
+			origina.lastIndexOf("x");
+
+		8 - Retorna a última posição de x dentro da String
+			origina.indexOf("x");
+
+		9 - Retorna a String divida em partes, através de um valor x 
+			original.split("x")
+
+Conversão de String <-> Valor
+	
+	String -> Valor
+		Valor.parseValor(String);
+
+	Valor -> String	
+		Valor.toString(Valor);
+
+	Ex:
+
+	String -> Inteiro
+		Integer.parseInt(y);
+	
+	Inteiro -> String	
+		Integer.toString(x);
+
+	String valor6 = "44";
+		int valor7 = Integer.parseInt(valor6);
+		float valor8 = Float.parseFloat(valor6);
+		double valor9 = Double.parseDouble(valor6);
+
+Formato da String
+
+	String.format("%.2f", valor);
+
+
+Caracteres dentro da String
+	string.charAt(0);	=> Retorna caractere da posição 0
+
+
+ps: String builder
+
+	public String getComments() {
+			StringBuilder sdb = new StringBuilder();
+			for(Comment c : comments) {
+				sdb.append(c.getText()+"\n");
+			}
+			return sdb.toString();
+	}

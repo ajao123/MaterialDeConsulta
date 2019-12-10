@@ -1,0 +1,976 @@
+Manipulação do Banco de Dados
+
+
+	C:\Users\Fernando\AppData\Local\SceneBuilder
+
+	Parte 1 - Criando conexão com o Banco de Dados
+
+		Classe Program - application
+
+			public class Program {
+				public static void main(String[] args) {
+					// Iniciando conexão
+					Connection conn = DB.getConnection();
+					// Fechando conexão
+					DB.closeConnection();
+				}
+			}
+
+		Classe DbException - db
+
+			public class DbException extends RuntimeException{
+
+				private static final long serialVersionUID = 1L;
+				
+				public DbException(String msg) {
+					super(msg);
+				}
+			}
+
+		Arquivo db.properties - Informações do Banco de Dados
+
+			user=developer
+			password=1234567
+			dburl=jdbc:mysql://localhost:3306/coursejdbc
+			useSSL=false
+
+		Classe DB - db
+
+			public class DB {
+	
+				private static Connection conn = null;
+				
+				public static Connection getConnection() {
+					if(conn == null) {
+						try {
+							Properties props = loadProperties();
+							String url = props.getProperty("dburl");
+							conn = DriverManager.getConnection(url, props);
+						}catch(SQLException e) {
+							throw new DbException(e.getMessage());
+						}
+					}
+					return conn;
+				}
+				
+				public static void closeConnection() {
+					if(conn != null) {
+						try {
+							conn.close();
+						}catch(SQLException e) {
+							throw new DbException(e.getMessage());
+						}
+					}
+				}
+				
+				//Carregar as propriedades presentes no arquivo db.properties
+				private static Properties loadProperties() {
+
+					//Arquivo que contém as informações do Banco de Dados
+					try(FileInputStream  fs = new FileInputStream("db.properties")){
+						Properties props = new Properties();
+						props.load(fs);
+						return  props;
+					} catch (IOException e) {
+						throw new DbException(e.getMessage());
+					} 
+				}	
+			}
+
+	Parte 2 - Testando Recuperação de dados
+
+		Classe Program - application
+
+			public class Program {
+
+				public static void main(String[] args) {
+					
+					//Criando Connection
+					Connection conn = null;
+					
+					//Criando Stament
+					Statement st = null;
+					
+					//Criando ResultSet
+					ResultSet rs = null;
+					
+					try {
+						//Iniciando Connection
+						conn = DB.getConnection();
+						
+						//Iniciando Statement
+						st = conn.createStatement();
+						
+						//Executando comando e recebendo uma tabela como resposta
+						rs = st.executeQuery("SELECT *FROM department");
+						
+						//Imprimindo os valores do Banco de Dados
+						while(rs.next()) {
+							//                  Coluna Id               Coluna Name
+							System.out.println("Id: "+rs.getInt("Id")+" Name: "+rs.getString("Name"));
+						}	
+					}catch(SQLException e) {
+						System.out.println(new DbException(e.getMessage()));
+					}finally {
+						
+						//Fecha o ResultSet
+						DB.closeResultSet(rs);
+						
+						//Feecha o Statement
+						DB.closeStatement(st);
+						
+						//Fecha o Connection
+						DB.closeConnection();
+						
+					}
+			 	}
+			}
+
+		Classe DB - db
+
+
+			public class DB {
+	
+				private static Connection conn = null;
+				
+				public static Connection getConnection() {
+					if(conn == null) {
+						try {
+							Properties props = loadProperties();
+							String url = props.getProperty("dburl");
+							conn = DriverManager.getConnection(url, props);
+						}catch(SQLException e) {
+							throw new DbException(e.getMessage());
+						}
+					}
+					return conn;
+				}
+				//Função para fechar conexão
+				public static void closeConnection() {
+					if(conn != null) {
+						try {
+							conn.close();
+						}catch(SQLException e) {
+							throw new DbException(e.getMessage());
+						}
+					}
+				}
+				
+				//Carregar as propriedades presentes no arquivo db.properties
+				private static Properties loadProperties() {
+					try(FileInputStream  fs = new FileInputStream("db.properties")){
+						Properties props = new Properties();
+						props.load(fs);
+						return  props;
+					} catch (IOException e) {
+						throw new DbException(e.getMessage());
+					} 
+				}
+				//Fechar Statement
+				public static void closeStatement(Statement st) {
+					try {
+						st.close();
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+				
+				//Fechar ResultSet
+				public static void closeResultSet(ResultSet rs) {
+					try {
+						rs.close();
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+			}
+
+	Parte 3 - Inserindo dados no Banco de Dados
+
+		Classe Program
+
+			public class Program {
+
+				public static void main(String[] args) {
+					
+					//Criando Connection
+					Connection conn = null;
+					
+					//Criando Stament
+					PreparedStatement st = null;
+					
+					try {
+						//Criando uma conexão
+						conn = DB.getConnection();
+						
+						//Criando prepareStatement
+						st = conn.prepareStatement("INSERT INTO department (Name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+						st.setString(1, "D2");
+				
+						/*
+						//Inserindo mais de um elemento
+							st = conn.prepareStatement(
+									"INSERT INTO department (Name) values (?), (?)", 
+									Statement.RETURN_GENERATED_KEYS);
+			
+							st.setString(1, "D3");
+							st.setString(2, "D4");
+						*/
+
+						int rowsAffected = st.executeUpdate();
+						
+						if(rowsAffected > 0) {
+								//Chaves das linhas que foram alteradas
+								ResultSet rs = st.getGeneratedKeys();
+							while(rs.next()) {
+								System.out.println(rs.getInt(1));
+							}
+							
+						}else {
+							System.out.println("No rown Affected");
+						}
+						
+					}catch(SQLException e) {
+						System.out.println(new DbException(e.getMessage()));
+					}
+					finally {
+						
+						//Feecha o Statement
+						DB.closeStatement(st);
+						
+						//Fecha o Connection
+						DB.closeConnection();
+						
+					}
+			 	}
+			}
+
+	Parte 4 - Atualizando dados no Banco de Dados
+
+		public class Program {
+
+			public static void main(String[] args) {
+				
+				//Criando Connection
+				Connection conn = null;
+				
+				//Criando Statement
+				PreparedStatement st = null;
+				
+				try {
+					
+					conn = DB.getConnection();
+					st = conn.prepareStatement("UPDATE department "
+							+ "SET Name = ? "
+							+ "WHERE Id > ?");
+					
+					st.setString(1, "D5");
+					st.setInt(2, 20);
+					
+					int rows = st.executeUpdate();
+					
+					if(rows > 0) {
+						System.out.println(rows);
+					}
+					
+				
+				}catch(SQLException e) {
+					System.out.println(new DbException(e.getMessage()));
+				}
+				finally {
+					
+					//Fecha o ResultSet
+			
+					//Fecha o Statement
+					DB.closeStatement(st);
+					
+					//Fecha o Connection
+					DB.closeConnection();
+					
+				}
+		 	}
+		}
+
+	Parte 5 - Deletando dados no Banco de Dados
+
+			//Classe Program - application
+
+			public class Program {
+
+				public static void main(String[] args) {
+					
+					//Criando Connection
+					Connection conn = null;
+					
+					//Criando Statement
+					PreparedStatement st = null;
+					
+					//Criando ResultSet
+					ResultSet rs = null;
+					
+					try {
+						
+						conn = DB.getConnection();
+						st = conn.prepareStatement("DELETE FROM department WHERE Id > ?", Statement.RETURN_GENERATED_KEYS);
+						st.setInt(1, 15);
+						
+						int rows = st.executeUpdate();
+						
+						if(rows < 0){
+							System.out.println("Erro inesperado! Nenhuma linha foi alterada.");
+						}
+						
+					}catch(SQLException e) {
+						System.out.println(new DbException(e.getMessage()));
+					}
+					finally {
+						
+						//Fecha o ResultSet
+					//	DB.closeResultSet(rs);
+						//Fecha o Statement
+						DB.closeStatement(st);
+						
+						//Fecha o Connection
+						DB.closeConnection();
+						
+					}
+			 	}
+			}
+
+	Parte 6 - setAutoCommit, commit e rollback 
+
+		public static void main(String[] args) {
+			
+			Connection conn = null;
+			Statement st = null;
+			
+			try {
+
+				conn = DB.getConnection();
+
+			//Quando a função conn.setAutoCommit(false); for executada, as funções de SQL só serão executadas quando o conn.commit; for executado. 
+
+		  	|*	conn.setAutoCommit(false);
+			|		
+			|	st = conn.createStatement();
+			|	int rows1 = st.executeUpdate("UPDATE seller SET BaseSalary = 2002 WHERE DepartmentId = 1");
+			|	
+			|	int x = 2;
+			|	
+			|	if(x < 2) {
+			|		throw new SQLException("Fake error");
+			|	}
+			|	
+			|	int rows2 = st.executeUpdate("UPDATE seller SET BaseSalary = 3002 WHERE DepartmentId = 2");
+			|	
+			|*	conn.commit();
+				
+				System.out.println("rows1 = " + rows1);
+				System.out.println("rows2 = " + rows2);
+				
+			}catch(SQLException e) {
+			
+				try {
+					//Rollback reverte todos os comandos de SQL anteriormente executados
+
+					conn.rollback();
+					throw new DbException(e.getMessage());
+				
+				} catch (SQLException e1) {
+				
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					throw new DbException(e1.getMessage());
+					
+				}finally {
+					
+					DB.closeStatement(st);
+					DB.closeConnection();
+					
+				}
+			}
+		}	
+
+	Parte 7 - Projeto JDBC, comunicação com o Banco de Dados
+
+		Classe Program - application
+
+			public class Program {
+
+				public static void main(String[] args) {
+					try {
+					
+						DepartmentDAO departments = DaoFactory.createDepartmentDAO();
+						SellerDAO sellers = DaoFactory.createSellerDAO();
+					
+						
+					Inserindo um Departamento no Banco	
+					//	departments.insert(new Department("Movies", null));
+						
+					Atualizando um Departamento no Banco
+					//	departments.update(new Department("Filmes", 32));
+					
+					Seleção do Deparmento que possui Id X
+					//	System.out.println(departments.select(1));
+						
+					Deleção do Deparmento que possui Id X
+					//	departments.deleteById(32);
+						/*
+						for(Department dep : departments.findAll()) {
+							System.out.println(dep);
+						}
+						*/
+					
+
+						//sellers.insert(new Seller(null,"Joao","joao@gmail.com", 2300.0, new Department(null, 2), new Date()));
+						
+						//sellers.update(new Seller(7,"Joaozin","joaozin@gmail.com", 2300.1, new Department(null, 3), new Date()));
+					
+						//sellers.deleteById(8);
+						
+						//System.out.println(sellers.select(2));
+						
+						/*
+						for(Seller sell : sellers.findAll()) {
+							System.out.println(sell);
+						}
+						*/
+						
+					}catch(DbException e) {
+						System.out.println("Error: "+e.getMessage());
+					}
+					
+				}
+			}
+
+		Classe DB - db (Conexão)
+
+			public class DB {
+	
+				private static Connection conn = null;
+				
+				public static Connection getConnection() {
+					if(conn == null) {
+						try {
+							Properties props = loadProperties();
+							String url = props.getProperty("dburl");
+							conn = DriverManager.getConnection(url, props);
+						}catch(SQLException e) {
+							throw new DbException(e.getMessage());
+						}
+					}
+					return conn;
+				}
+				
+				public static void closeConnection() {
+					if(conn != null) {
+						try {
+							conn.close();
+						}catch(SQLException e) {
+							throw new DbException(e.getMessage());
+						}
+					}
+				}
+				
+				//Carregar as propriedades presentes no arquivo db.properties
+				private static Properties loadProperties() {
+					try(FileInputStream  fs = new FileInputStream("db.properties")){
+						Properties props = new Properties();
+						props.load(fs);
+						return  props;
+					} catch (IOException e) {
+						throw new DbException(e.getMessage());
+					} 
+				}
+				
+				public static void closeStatement(Statement st) {
+					try {
+						st.close();
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+				
+				public static void closeResultSet(ResultSet rs) {
+					try {
+						rs.close();
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+			}
+
+		Classe DbExceptionn - db - (Excessão)
+
+			public class DbException extends RuntimeException{
+
+				private static final long serialVersionUID = 1L;
+				
+				public DbException(String msg) {
+					super(msg);
+				}
+			}
+
+		Classe DaoFactory - model.dao - Classe
+
+			public class DaoFactory {
+				public static SellerDAO createSellerDAO() {
+					return new SellerDaoJDBC(DB.getConnection());
+				}
+				
+				public static DepartmentDAO createDepartmentDAO() {
+					return new DepartmentDaoJDBC(DB.getConnection());
+				}
+			}
+
+		Interface DepartmentDAO - model.dao - Interface
+
+			public interface DepartmentDAO {
+				void insert(Department department);
+				void update(Department department);
+				Department select(Integer id);
+				void deleteById(Integer id);
+				List<Department> findAll();
+			}
+
+		Interface SellerDAO - model.dao - Interface
+
+			public interface SellerDAO {
+				void insert(Seller seller);
+				void update(Seller seller);
+				Seller select(Integer id);
+				void deleteById(Integer id);
+				List<Seller> findAll();
+			}
+
+		Classe DepartmentDaoJDBC - model.dao.impl - Classe
+
+			public class DepartmentDaoJDBC implements DepartmentDAO{
+
+				private Connection conn;
+				
+				//Iniciar Connection conn
+				public DepartmentDaoJDBC(Connection conn) {
+					this.conn = conn;
+				}
+
+				//Inserir Department 
+				@Override
+				public void insert(Department department){
+					PreparedStatement st = null;
+					try {
+						st = conn.prepareStatement("INSERT INTO department (Name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+						st.setString(1, department.getName());
+						st.executeUpdate();
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}finally {
+						DB.closeStatement(st);
+					}
+				}
+
+				//Realizando Update em um Department
+				@Override
+				public void update(Department department) {
+					PreparedStatement st = null;
+					try {
+						st = conn.prepareStatement("UPDATE department "
+																	+"SET Name = ? "
+																	+ "WHERE Id = ?");
+						st.setString(1, department.getName());
+						st.setInt(2, department.getId());
+						
+						st.executeUpdate();
+						
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}finally {
+						DB.closeStatement(st);
+					}
+				}
+
+				//Realizando Seleção de um Department
+				@Override
+				public Department select(Integer id) {
+					PreparedStatement st = null;
+					ResultSet rs =  null;
+					try {
+						
+						st = conn.prepareStatement("SELECT *FROM department WHERE Id = ?");
+						st.setInt(1, id);
+						rs = st.executeQuery();
+						
+						if(rs.next()) {
+							return instantiateDepartment(rs);
+						}
+						return null;
+						
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}finally {
+						DB.closeResultSet(rs);
+						DB.closeStatement(st);
+					}
+				}
+
+				//Realizando Deleção de um Department
+				@Override
+				public void deleteById(Integer id) {
+					PreparedStatement st = null;
+					try {
+						st = conn.prepareStatement("DELETE FROM department WHERE Id = ?");
+						st.setInt(1, id);
+						st.executeUpdate();
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}finally {
+						DB.closeStatement(st);
+					}
+					
+				}
+
+				//Realizando a Seleção de todos os Departments
+				@Override
+				public List<Department> findAll() {
+					List<Department> departments =  new ArrayList<>();
+					PreparedStatement st = null;
+					ResultSet rs = null;
+					try {
+						st = conn.prepareStatement("SELECT *FROM department");
+						rs = st.executeQuery();
+						
+						while(rs.next()) {
+							departments.add(instantiateDepartment(rs));
+						}
+
+						return departments;
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}finally {
+						DB.closeResultSet(rs);
+						DB.closeStatement(st);
+					}
+				}
+				
+				//Recebendo um ResultSet e retornando um Department
+				public Department instantiateDepartment(ResultSet rs) {
+					try {
+						return new Department(rs.getString("Name"), rs.getInt("Id"));
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}	
+				}
+
+			}
+
+		Classe SellerDaoJDBC - model.dao.impl - Classe
+
+			public class SellerDaoJDBC implements SellerDAO{
+
+				private Connection conn;
+				
+				//Iniciando o Connection conn
+				public SellerDaoJDBC(Connection conn) {
+					this.conn = conn;
+				}
+
+				//Inserindo um novo Seller
+				@Override
+				public void insert(Seller seller) {
+					PreparedStatement st = null;
+					try {
+						st = conn.prepareStatement("INSERT INTO seller "
+								+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+								+ "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+						
+						st.setString(1, seller.getName());
+						st.setString(2, seller.getEmail());
+						st.setDate(3, new java.sql.Date(seller.getBirthDate().getTime()));
+						st.setDouble(4, seller.getBaseSalary());
+						st.setInt(5, seller.getDepartment().getId());
+						
+						st.executeUpdate();
+						
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+
+				//Atualizando um Seller
+				@Override
+				public void update(Seller seller) {
+					PreparedStatement st = null;
+					try {
+						st = conn.prepareStatement("UPDATE seller SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+								+ "WHERE Id = ?");
+						
+						st.setString(1, seller.getName());
+						st.setString(2, seller.getEmail());
+						st.setDate(3, new java.sql.Date(seller.getBirthDate().getTime()));
+						st.setDouble(4, seller.getBaseSalary());
+						st.setInt(5, seller.getDepartment().getId());
+						st.setInt(6, seller.getId());
+						
+						st.executeUpdate();
+						
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+
+				//Selecionando um Seller
+				@Override
+				public Seller select(Integer id) {
+					PreparedStatement st = null;
+					ResultSet rs = null;
+					try {
+						st = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
+								+ "FROM seller INNER JOIN department "
+								+ "ON seller.DepartmentId = department.Id "
+								+ "WHERE seller.Id = ?");
+					
+						st.setInt(1, id);
+						rs = st.executeQuery();
+						if(rs.next()) {
+							Department dep = instantiateDepartment(rs);
+							return instantiateSeller(rs, dep);
+						}
+						
+						return null;
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+
+				//Deletenado um Seller
+				@Override
+				public void deleteById(Integer id) {
+					PreparedStatement st = null;
+					try {
+						st = conn.prepareStatement("DELETE FROM seller WHERE Id = ?");
+						st.setInt(1, id);
+						st.executeUpdate();
+						
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}
+				}
+
+				//Retornando todos os Sellers
+				@Override
+				public List<Seller> findAll() {
+					PreparedStatement st = null;
+					ResultSet rs = null;
+					List<Seller> sellers = new ArrayList<>();
+					
+					try {
+						st = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
+								+ "FROM seller INNER JOIN department "
+								+ "ON seller.DepartmentId = department.Id "
+								+ "ORDER BY Name");
+						rs = st.executeQuery();
+
+						//Criado para realizar uma verificação, para não ser necessário criar um mesmo Department 2 vezes
+						Map<Integer , Department> deps = new HashMap<>();
+						while(rs.next()) {
+							
+							//Verificação
+							if(deps.get(rs.getInt("DepartmentId")) == null) {
+								deps.put(rs.getInt("DepartmentId"), instantiateDepartment(rs));
+								sellers.add(instantiateSeller(rs, deps.get(rs.getInt("DepartmentId"))));
+							}else {
+								sellers.add(instantiateSeller(rs, deps.get(rs.getInt("DepartmentId"))));
+							}	
+						}
+					}catch(SQLException e) {
+						throw new DbException(e.getMessage());
+					}finally {
+						return sellers;
+					}
+				}
+				//Istanciando um Seller
+				private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
+					Seller sell = new Seller();
+					sell.setId(rs.getInt("Id"));
+					sell.setName(rs.getString("Name"));
+					sell.setEmail(rs.getString("Email"));
+					sell.setBirthDate(rs.getDate("BirthDate"));
+					sell.setBaseSalary(rs.getDouble("BaseSalary"));
+					sell.setDepartment(dep);
+					return sell;
+				}
+				//Instanciando um Department
+				private Department instantiateDepartment(ResultSet rs) throws SQLException {
+					Department dep  = new Department();
+					dep.setId(rs.getInt("DepartmentId"));
+					dep.setName(rs.getString("DepName"));
+					return dep;
+				}
+			}
+
+		Classe Department - model.entities - Classe
+
+			public class Department {
+					private String name;
+					private Integer id;
+					
+					public Department() {
+						// TODO Auto-generated constructor stub
+					}
+
+					public Department(String name, Integer id) {
+						this.name = name;
+						this.id = id;
+					}
+
+					public String getName() {
+						return name;
+					}
+
+					public void setName(String name) {
+						this.name = name;
+					}
+
+					public Integer getId() {
+						return id;
+					}
+
+					public void setId(Integer id) {
+						this.id = id;
+					}
+
+					@Override
+					public int hashCode() {
+						final int prime = 31;
+						int result = 1;
+						result = prime * result + ((id == null) ? 0 : id.hashCode());
+						return result;
+					}
+
+					@Override
+					public boolean equals(Object obj) {
+						if (this == obj)
+							return true;
+						if (obj == null)
+							return false;
+						if (getClass() != obj.getClass())
+							return false;
+						Department other = (Department) obj;
+						if (id == null) {
+							if (other.id != null)
+								return false;
+						} else if (!id.equals(other.id))
+							return false;
+						return true;
+					}
+
+					@Override
+					public String toString() {
+						return "Department [name=" + name + ", id=" + id + "]";
+					}
+				}
+
+		Classe Seller - model.entities - Classe
+
+			public class Seller {
+
+				private Integer id;
+				private String name;
+				private String email;
+				private Double baseSalary;
+				private Department department;
+				private Date birthDate;
+				
+				public Seller() {
+					// TODO Auto-generated constructor stub
+				}
+
+				public Seller(Integer id, String name, String email, Double baseSalary, Department department, Date birthDate) {
+					this.id = id;
+					this.name = name;
+					this.email = email;
+					this.baseSalary = baseSalary;
+					this.department = department;
+					this.birthDate = birthDate;
+				}
+
+				public Integer getId() {
+					return id;
+				}
+
+				public void setId(Integer id) {
+					this.id = id;
+				}
+
+				public String getName() {
+					return name;
+				}
+
+				public void setName(String name) {
+					this.name = name;
+				}
+
+				public String getEmail() {
+					return email;
+				}
+
+				public void setEmail(String email) {
+					this.email = email;
+				}
+
+				public Double getBaseSalary() {
+					return baseSalary;
+				}
+
+				public void setBaseSalary(Double baseSalary) {
+					this.baseSalary = baseSalary;
+				}
+
+				public Department getDepartment() {
+					return department;
+				}
+
+				public void setDepartment(Department department) {
+					this.department = department;
+				}
+
+				public Date getBirthDate() {
+					return birthDate;
+				}
+
+				public void setBirthDate(Date birthDate) {
+					this.birthDate = birthDate;
+				}
+
+				@Override
+				public int hashCode() {
+					final int prime = 31;
+					int result = 1;
+					result = prime * result + ((id == null) ? 0 : id.hashCode());
+					return result;
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					if (this == obj)
+						return true;
+					if (obj == null)
+						return false;
+					if (getClass() != obj.getClass())
+						return false;
+					Seller other = (Seller) obj;
+					if (id == null) {
+						if (other.id != null)
+							return false;
+					} else if (!id.equals(other.id))
+						return false;
+					return true;
+				}
+
+
+				@Override
+				public String toString() {
+					return "Seller [id=" + id + ", name=" + name + ", email=" + email + ", baseSalary=" + baseSalary
+							+ ", departmentId=" + department + ", birthDate=" + birthDate + "]";
+				}	
+			}

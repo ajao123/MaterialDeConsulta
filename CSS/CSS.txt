@@ -1,0 +1,382 @@
+CCS Externo
+
+	Arquivo Html
+
+		<head>
+		    <meta charset="utf-8">
+		    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+		    <title>Page Title</title>
+
+		    <meta name="viewport" content="width=device-width, initial-scale=1">
+		    <link rel="stylesheet" href="css/estilos.css">
+
+		</head>
+		<body>
+
+			<p>
+			    Texto em azul
+			</p>
+
+		</body>
+
+	Arquivo CSS
+
+		p{
+			color : blue;
+		}
+
+Seletor de classe
+
+	Arquivo Html
+
+		<body>
+
+			<p class ="cor_um">
+			    green
+			</p>
+
+			<p class ="cor_dois">
+			    blue
+			</p>
+
+		</body>
+
+	Arquivo CSS
+
+		p.cor_um{
+			color : green;
+		}
+
+		p.cor_dois{
+			color : blue;
+		}
+
+Classe aplicável a qualquer elemento HTML
+
+	Arquivo Html
+
+		<body>
+
+			<h1 class="cor_um">Green</h1>
+			<h2 class="cor_dois">Blue</h2>
+			<h3 class="cor_tres">Red</h3>
+
+		</body>
+
+	Arquivo CSS
+
+		.cor_um{
+			color : green;
+		}
+
+		.cor_dois{
+			color : blue;
+		}
+
+		.cor_tres{
+			color : red;
+		}
+
+Id aplicável a elemento HTML específico
+
+	Arquivo Html
+
+		<body>
+
+			<h1 id="cabecalho">TESTANDO CSS</h1>
+
+			<h1 id="cor_um">Green</h1>
+			<h2 id="cor_dois">Blue</h2>
+			<h3 id="cor_tres">Red</h3>
+
+		</body>
+
+	Arquivo CSS
+
+		#cor_um{
+			color : green;
+		}
+
+		#cor_dois{
+			color : blue;
+		}
+
+		#cor_tres{
+			color : red;
+		}
+
+		#cabecalho{
+			color : white;
+			background-color: black;
+			text-align: center;
+		}
+
+Seletor hierárquico 
+
+	Arquivo Html
+
+		<body>
+
+			<img src="img/gaivota.jpeg" id="rodape">
+
+		</body>
+
+	Arquivo CSS
+
+		#rodape{
+			margin-right: 350px;
+			vertical-align: middle;
+			width: 94px;
+		}
+
+Agrupamento de seletores
+
+	Arquivo Html
+
+		<body>
+
+			<h1>H1</h1>
+			<h2>H2</h2>
+			<h3>H3</h3>
+
+		</body>
+
+	Arquivo CSS
+
+		h1,h2,h3,h4,h5,h6{
+			color:brown;
+		}
+
+Famílias de Fontes
+
+	Arquivo CSS
+
+		h1 {  
+			font-family: "Times New Roman", Times, serif; 
+		} 
+
+		h2 {  
+			font-family: sans-serif; 
+		} 
+
+		p {  
+			font-family: monospace; 
+		} 
+
+		body {  
+			font-family: "Arial", "Helvetica", sans-serif; 
+		}
+
+Fontes 
+
+
+	Arquivo Html
+
+		<body>
+
+			<p>
+				Testando
+			</p>
+
+		</body>
+
+	Arquivo CSS
+
+		p { 
+			color:brown; 
+			font-family: monospace;  
+			text-align: right;  
+			line-height: 3px; /* tamanho da altura de cada linha */  
+			letter-spacing: 3px; /* tamanho do espaço entre cada letra */  
+			word-spacing: 5px; /* tamanho do espaço entre cada palavra */  
+			text-indent: 30px; /* tamnho da margem da primeira linha do texto */ 
+		}
+
+Imagem de Fundo
+
+	Arquivo Html
+
+		<body>
+
+			<h1>arroz</h1>
+
+		</body>
+
+	Arquivo CSS
+
+
+		h1{
+			color:brown;
+			background-image: url(../img/gaivota.jpeg);
+			padding: 200px 20px;
+			margin: 100px;
+			background-repeat: repeat-x;
+		}
+
+Bordas
+
+	Arquivo CSS
+
+		body {  
+			border-color: red;  
+			border-style: solid;  
+			border-width: 10px; 
+		}
+
+		body {  
+			border: 1px solid red; 
+		}
+
+Box Model
+	
+	Arquivo CSS
+
+		Padding/Margin
+
+			p {  
+				padding: 10px;  /* todas as direções */ 
+			} 
+
+			p {  
+				padding: 10px 15px;  /* 1º - padding-top e padding-bottom     2º - padding-right e padding-left */ 
+			} 
+
+			p {  
+				padding: 10px 20px 15px;  /* 1º - padding-top     2º - padding-right e padding-left      3º - padding-bottom */  
+			} 
+
+			p {  
+				padding: 10px 20px 15px 5px;  /* sentido horário:     top, right, bottom , left */ 
+			}
+
+Dimensões 
+
+	Arquivo CSS
+
+		p {  
+			background-color: red;  
+			height: 300px;  
+			width: 300px; 
+		}
+
+Seletores Avançados
+
+	Arquivo CSS
+
+		//Seletor de irmãos
+		h2 ~ p { 
+		 	font-style: italic;
+		}
+
+		//Seletor de irmãos adjacentes
+		h2 + p { 
+		 	 font-variant: small-caps;
+		}
+
+		//Seletor de filho direto
+		article > h1 { 
+		 	color: blue; 
+		}
+
+		//Negação
+		p:not(.especial) {  
+			color: gray; 
+		}
+
+
+
+	Arquivo Html
+
+		<article>  
+		    <h1>Título</h1>  
+		    <p>Início</p>  
+		    <h2>Subtítulo</h2>  
+		    <p>Texto</p>  
+		    <p>Mais texto</p>  
+		    <p class="especial">     
+		    Texto especial</p>  
+		    <section>    
+		        <h1>Título da seção</h1>  
+		    </section> 
+		</article>
+
+Pseudo Classes
+
+	Arquivo CSS
+
+		//Primerio Item
+		li:first-child {  
+			color: red; 
+		}
+
+		//Ultimo Item
+		li:last-child {  
+			color: blue; 
+		} 
+
+		//Itens Pares
+		li:nth-child(2n) { 
+			color: green; 
+		}
+
+		//Itens Impares
+		li:nth-child(2n+1) { 
+			color: blue; 
+		} 
+
+	Arquivo Hmtl
+
+		<ul>  
+		    <li>Prim eiro item </li>  
+		    <li>Segundo item </li>  
+		    <li>Terceiro item </li>  
+		    <li>Quarto item </li> 
+		</ul>
+
+Pseudo Elementos
+
+	Arquivo CSS
+
+		p:first-line {  
+			font-size: 200% ; 
+		} 
+
+		p:first-letter {  
+			font-size: 200% ; 
+		} 
+
+Inserção de Conteudo em Elementos
+
+	Exemplo 1: Inserir colchetes em todos os links. 
+
+		a:before {  
+			content: '[ '; 
+		} 
+
+		a:after {  
+			content: ' ]'; 
+		}
+
+	Exemplo 2: Inserir o texto ‘ (externo)’ após todos os links externos.
+
+		a [href^=http://]:after {  
+			content: '(externo)'; 
+
+		}
+
+Position
+
+	#coupon{
+		position : fixed;
+		top : 300px;
+		left : 100px;
+	}
+
+Z-Index
+
+	img { 
+		position:absolute;  
+		left:0px;  
+		top:0px;  
+		z-index:-1; 
+	} 

@@ -1,0 +1,314 @@
+Interfaces
+
+----------------------------------------------------------Interface----------------------------------------------------------------
+
+Interface Shape
+
+public interface Shape {
+	double area();
+}
+
+public enum Color {
+	BLACK,
+	WHITE;
+}
+
+
+AbstractShape implementa a interface Shapa, mas, como é uma classe abstrata, não necessita implementar a função area, mas todas as 
+classes filhas devem implementars
+
+public abstract class AbstractShape implements Shape{
+	private Color color;
+	public AbstractShape() {
+		// TODO Auto-generated constructor stub
+	}
+	public AbstractShape(Color color) {
+		this.color = color;
+	}
+	public Color getColor() {
+		return color;
+	}
+	public void setColor(Color color) {
+		this.color = color;
+	}
+	@Override
+	public String toString() {
+		return "Color: "+color;
+	}
+}
+
+public class Rectangle extends AbstractShape{
+	private Double high;
+	private Double width;	
+	public Rectangle(Color color, Double high, Double width) {
+		super(color);
+		this.high = high;
+		this.width = width;
+	}	
+	public Double getHigh() {
+		return high;
+	}
+	public void setHigh(Double high) {
+		this.high = high;
+	}
+	public Double getWidth() {
+		return width;
+	}
+	public void setWidth(Double width) {
+		this.width = width;
+	}
+	@Override
+	public double area() {
+		return (width*width)*high;
+	}
+	@Override
+	public String toString() {
+		return "Rectangle [high=" + high + ", width=" + width +" "+super.toString()+"]";
+	}
+}
+
+RentalService rs = new RentalService(sc.nextDouble(), sc.nextDouble(), new UsaTaxService());
+																			|
+																			| upcasting
+																			|
+public RentalService(Double pricePerHour, Double pricePerDay, TaxService taxService) {
+		this.pricePerHour = pricePerHour;
+		this.pricePerDay = pricePerDay;
+		this.taxService = taxService;
+	}
+-----------------------------------------------------------------------------//---------------------------------------------------------
+
+TaxService ------------> UsaTaxService
+				|
+				|
+				|------> BrasilTaxService
+
+public interface TaxService {
+	double tax(double amount);	
+}
+
+public class UsaTaxService implements TaxService{
+	public double tax(double amount) {
+		if(amount < 100.0) {
+			return amount * 0.3;
+		}else {
+			return amount * 0.25;
+		}
+	}
+}
+
+public class BrazilTaxService implements TaxService{
+	public double tax(double amount) {
+		if(amount < 100.0) {
+			return amount * 0.2;
+		}else {
+			return amount * 0.15;
+		}
+	}
+}
+
+-----------------------------------------------------------//---------------------------------------------------------------
+
+Fixação
+
+public interface ServicoDePagamento {
+	public double TaxaJurosSimples(double amount, int mounth);
+	public double TaxaPagamento(double amount);
+}
+
+public class ServicoDePagamentoDeTaxas implements ServicoDePagamento{
+	public double TaxaJurosSimples(double amount, int mounth) {
+		return  amount*((double) 0.01*mounth);
+	}
+	public double TaxaPagamento(double amount) {
+		return amount * 0.02;
+	}
+}
+
+-----------------------------------------------//---------------------------------------------------------------------------
+
+public interface Printer {
+	void print(String doc);
+}
+
+public interface Scanner {
+	String scan();
+}
+
+CLASS DEVICE
+
+public abstract class Device {
+	private String serialNumber;
+
+	public Device(String serialNumber) {
+		this.serialNumber = serialNumber;
+	}
+	public String getSerialNumber() {
+		return serialNumber;
+	}
+	public void setSerialNumber(String serialNumber) {
+		this.serialNumber = serialNumber;
+	}
+	
+	public abstract void  processDoc(String doc);
+}
+
+ConcretPrinter
+
+public class ConcretPrinter extends Device implements Printer{
+
+	public ConcretPrinter(String serialNumber) {
+		super(serialNumber);
+		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	public void processDoc(String doc) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void print(String doc) {
+		// TODO Auto-generated method stub	
+	}	
+}
+
+ConcretScanner
+
+public class ConcretScanner extends Device implements Scanner{
+
+	public ConcretScanner(String serialNumber) {
+		super(serialNumber);
+		// TODO Auto-generated constructor stub
+	}
+	@Override
+	public String scan() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public void processDoc(String doc) {
+		// TODO Auto-generated method stub	
+	}
+}
+
+----------------------------------------------------------//--------------------------------------------------------------------
+
+-----------------------------------------------------InterfaceComparable--------------------------------------------------
+
+public class Employee implements Comparable<Employee>{
+	private String nome;
+	private Double salario;
+	//Get,Set,Construct ... abstrai
+	@Override
+	public int compareTo(Employee other) {	
+		return salario.compareTo(other.getSalario());
+	}
+}
+
+public class Program {
+	public static void main(String[] args) {
+		List<Employee> list = new ArrayList<>();
+		String path = "C:\\Users\\allis\\Desktop\\arquivos\\in.txt";
+		
+		try(BufferedReader bf = new BufferedReader(new FileReader(path))){
+			String employee = bf.readLine();
+		 
+			while(employee != null) {
+			String[] info = employee.split(",");
+				list.add(new Employee(info[0], Double.parseDouble(info[1])));
+				employee = bf.readLine();
+			}
+			Collections.sort(list);
+			for(Employee emp : list) {
+				System.out.println(emp);
+			}
+		}catch(IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+}
+
+
+-------------------------------------------------------------//-----------------------------------------------------------
+
+---------------------------------------------------InterfaceMetodosDefault-------------------------------------------------
+
+public interface InterestService {
+	Double getInterestRate();
+	default Double Payment(Double amount, Integer months) {
+		return amount * Math.pow(1.0 + getInterestRate()/100.0 , months);
+	}
+}
+
+public class UsaInterestService implements InterestService{
+	private static final double interestRate = 2.0;
+	public final Double getInterestRate() {
+		return interestRate;
+	}
+}
+
+public class BrazilInterestService implements InterestService{
+	private static final double interestRate = 1.0;
+	public Double getInterestRate() {
+		return interestRate;
+	}
+}
+
+public class Program {
+	public static void main(String[] args) {
+		InterestService interestService = new UsaInterestService();
+		System.out.println(interestService.Payment(200.0, 3));
+	}
+}
+
+--------------------------------------------------------------------//-----------------------------------------------------------------------
+
+Comparable
+
+Program
+
+public static void main(String[] args) {
+		List<Product> products = new ArrayList<>();
+		products.add(new Product("Computer", 890.50));
+		products.add(new Product("Iphone X", 910.00));
+		products.add(new Product("Tablet", 550.00));
+		
+		CalculationService service = new CalculationService();
+		
+		System.out.println(service.max(products));
+	}
+
+
+Product
+
+public class Product implements Comparable<Product>{
+		.
+		.
+		.
+
+	@Override
+	public int compareTo(Product o) {
+		return valor.compareTo(o.getValor());
+	}
+	
+}
+
+Calculation Service
+
+public class CalculationService{
+	public static <T extends Comparable<? super T>> T max(List<T> list){	
+		if(list.isEmpty())
+			throw new IllegalStateException("List can't be empty.");		
+		T max = list.get(0);
+		for(T t : list) {
+			if(t.compareTo(max) > 0)
+				max = t;
+		}
+		return max;
+	}
+}
+
+
+-------------------------------------------------------------//------------------------------------------------------------------------------

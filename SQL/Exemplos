@@ -1,0 +1,77 @@
+
+Exemplo 1:
+
+	create table if not exists cursos(
+		nome varchar(30) not null unique,
+	    descricao text,
+	    carga int unsigned,
+	    totalAula int unsigned,
+	    ano year default '2016'
+	);
+
+	alter table cursos
+	add column idCurso int FIRST;
+
+	alter table cursos
+	add primary key(idCurso);
+
+
+	insert into cursos (idCurso, nome, descricao, carga, totalAula) values
+	(DEFAULT,'Html4',"Curso de Html4", '1', '20'),
+	(DEFAULT,'Algoritmos','Curso de Algoritmos', '1', '20'),
+	(DEFAULT,'Photoshop','Algoritmos', '1', '20'),
+	(DEFAULT,'Pgp','Curso de Pgp', '1', '20'),
+	(DEFAULT,'Java','Curso de Java', '1', '20'),
+	(DEFAULT,'MySQL','Curso de MySQL', '1', '20'),
+	(DEFAULT,'Word','Curso de Word', '1', '20'),
+	(DEFAULT,'Sapateado','Curso de Sapateado', '1', '20'),
+	(DEFAULT,'Cozinha','Curso de Cozinha', '1', '20'),
+	(DEFAULT,'Youtuber','Curso de Youtuber', '1', '20');
+
+	desc cursos;
+
+Exemplo 2:
+
+	desc professor;
+
+	alter table professor
+	modify column nome varchar(30) not null default '';
+
+	desc professor;
+
+	insert into professor VALUES
+	(DEFAULT, 'Joao Pedro','2003-10-2', 'M', 'FUP', '2018-8-12', DEFAULT);
+
+	SELECT * FROM professor;
+
+	delete from professor where id = '2';
+
+	insert into professor VALUES
+	(DEFAULT, 'Albeto Pedro','2000-11-2', 'M', 'ED', '2018-8-12', DEFAULT);
+
+
+	SELECT * FROM professor;
+
+	delete from professor where id > '2';
+
+	insert into professor VALUES
+	(DEFAULT, 'Albeto Pedro','2000-11-2', 'M', 'ED', '2018-8-12', DEFAULT);
+
+	select * from professor;
+
+	insert into professor values
+	(DEFAULT, 'A','2000-11-2', 'M', 'ED', '2018-8-12', DEFAULT),
+	(DEFAULT, 'B','2000-11-2', 'M', 'ED', '2018-8-12', DEFAULT),
+	(DEFAULT, 'C','2000-11-2', 'M', 'ED', '2018-8-12', DEFAULT);
+
+	select * from professor;
+
+	update professor set materia = 'POO' where materia = 'ED';
+
+	SELECT * from professor;
+
+	truncate table professor;
+
+	select * from professor;
+
+	truncate table professor;

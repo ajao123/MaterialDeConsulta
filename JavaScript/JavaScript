@@ -1,0 +1,252 @@
+Conversão de tipos
+
+	var textoInteiro = "10";
+	var inteiro = parseInt(textoInteiro);
+	var textoFloat = "10.22";
+	var float = parseFloat(textoFloat);
+	var milNumber = 1000;
+	var milString = milNumber.toFixed(2); // recebe o retorno da
+	função
+	console.log(milString);  // imprime a string "1000.00"
+
+Estruturas de Controle - if
+
+	var name =
+	"kittens";
+	if (name ==
+	"puppies") {
+	name += "!";
+	} else if (name == "kittens") {
+	name += "!!";
+	} else {
+	name = "!" + name;
+	}
+
+Estruturas de Controle – while e do-while
+
+	while (true) {
+	// an infinite loop!
+	}
+	do {
+	var input = get_input();
+	} while (inputIsNotValid(input))
+
+Estruturas de Controle – switch
+
+	switch(action) {
+	case 'draw':
+	drawit();
+	break;
+	case 'eat':
+	eatit();
+	break;
+	default:
+	donothing();
+	}
+
+Excessões
+
+JSON
+
+	{ "alunos" : [
+	{ "nome": "João", "notas": [ 8, 9, 7 ] },
+	{ "nome": "Maria", "notas": [ 8, 10, 7 ] },
+	{ "nome": "Pedro", "notas": [ 10, 10, 9 ] }
+	]
+	}
+
+Sintaxe Literal de Objeto
+    var obj = {
+    name: "Carrot",
+    for: "Max",
+    details: {
+    color: "orange",
+    size: 12
+    }
+    }
+    
+Para acessar
+
+    > obj.details.color
+    orange
+    > obj["details"]["size"]
+    12
+    for (var attr in obj)
+
+• Pode-se iterar pelas chaves de um objeto:
+
+    var obj = {"name":"Simon"
+    ,
+    "age": 25 };
+    for (var attr in obj) {
+    console.log(attr + ' = ' + obj[attr]);
+    }
+
+Arrays
+
+	• Tipo especial de objeto: as chaves são números e
+	não strings.
+	• Sintaxe [ ]:
+	> var a = new Array();
+	> a[0] = "dog";
+	> a[1] = "cat";
+	> a[2] = "hen";
+	> a.length
+
+
+Funções (Function Declaration)
+
+	function add(x, y) {
+		var total = x + y;
+		return total;
+	}
+
+Parâmetros
+
+	function add() {
+	var sum = 0;
+	for (var i = 0, j = arguments.length; i < j; i++) {
+	sum += arguments[i];
+	}
+	return sum;
+	}
+	> add(2, 3, 4, 5)
+
+
+Funções anônimas (function expression)
+
+	• funções declaradas como conteúdo de variáveis.
+
+	var somaDoisNumeros = function(numero1, numero2) {
+	return numero1 + numero2;
+	};
+	somaDoisNumeros(10,20);
+
+Funções anônimas (function expression)
+
+	var avg = function() {
+	var sum = 0;
+	for (var i = 0, j = arguments.length; i < j; i++) {
+	sum += arguments[i];
+	}
+	return sum / arguments.length;
+	}
+
+	avg(2,3,4)
+
+Funções Temporais
+
+	// executa a minhaFuncao daqui um segundo
+	setTimeout(minhaFuncao, 1000);
+	// executa a minhaFuncao de um em um segundo
+	// util para banner rotativo
+	var timer = setInterval(minhaFuncao, 1000);
+	// cancela execução
+	clearInterval(timer);
+
+
+Construtores
+
+	var Pessoa = function(nome, email) {
+		console.log("criando nova pessoa");
+		console.log(typeof(this));
+		this.nome = nome;
+		this.email = email;
+	}
+	// criando nova pessoa
+	var joao = new Pessoa("João da Silva","joao@da.silva");
+	console.log(joao.nome); // João da Silva
+	console.log(joao.email); // joao@da.silva
+
+	var Curso = function(nome) {
+	this.nome = nome;
+	return "curso "+ nome;
+	}
+	// Invocando como função
+	var stringParaCS01 = Curso("CS01");
+	typeof(stringParaCS01); // "string"
+	console.log(stringParaCS01); // curso CS01
+	// Invocando como construtor
+	var objetoParaWD47 = new Curso("WD47");
+	typeof(objetoParaWD47); // object
+	console.log(objetoParaWD47.nome); // WD47
+
+Protótipo
+
+	• Qualquer atributo ou função adicionado ao protótipo de
+	uma dessas funções ficará disponível em qualquer objeto
+	do tipo gerado por elas.
+
+	String.prototype.paraNumero = function() {
+		if(this == "um") {
+			return 1;
+		}
+	}
+
+	console.log("um".paraNumero()); // 1
+		
+		var Pessoa = function(nome, email) {
+			this.nome = nome;
+			// verifica se o e-mail foi preenchido
+			if (email) {
+				this.email = email;
+			}
+		}
+
+	Pessoa.prototype.email ="contato@ufc.br";
+	var ricardo = new Pessoa("Ricardo");
+
+	console.log(ricardo.email); // contato@ufc.br
+	var joao = new Pessoa("Joao da Silva","joao@da.silva");
+	console.log(joao.email); // joao@da.silva
+
+
+
+	var Pessoa = function(nome, email) {
+
+		this.nome = nome;
+
+		// verifica se o e-mail foi preenchido
+		if (email) {
+		this.email = email;
+		}
+	};
+
+	Pessoa.prototype.fala = function(){
+		console.log("Olá, meu nome é "+this.nome+" e meu email é"+this.email);
+	};
+
+	Pessoa.prototype.anda = function(){
+	console.log("Estou andando");
+	};
+
+Closures
+
+	function makeAdder(a) {
+		return function(b) {
+			return a + b;
+		};
+	}
+	var x = makeAdder(5);
+	var y = makeAdder(20);
+	x(6); // 11
+	y(7); // 27
+
+
+Funções + Eventos
+	document.querySelector("#titulo").addEventListener('click',function() {
+		alert("Funciona!");
+	});
+
+
+Adicionar e remover elementos com appendChild e removeChild
+
+	var node = document.createElement("li");
+	var textnode = document.createTextNode("Water");
+
+	node.appendChild(textnode);
+	document.querySelector("myList").appendChild(node);
+
+	var list = document.querySelector("myList");
+
+	list.removeChild(list.childNodes[0]);

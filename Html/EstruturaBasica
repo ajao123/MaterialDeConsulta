@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+	<html>
+		<head>	
+			<title>Título do documento</title>
+		</head>
+		<body>
+			Texto visível do corpo do documento.
+		</body>
+	</html>
+
+
+	<!DOCTYPE html>: document type definition.
+	• <title>: Define o título da página, que é exibido na barra de
+	título dos navegadores
+	• <style>: Define formatação em CSS
+	• <script>: Define programação de certas funções em página
+	com scripts, e pode colocar funções de JavaScript
+	• <link>: Define ligações da página com outros arquivos
+	como feeds, CSS, scripts, etc.
+	• <meta>: Define propriedades da página (metadados), como
+	codificação de caracteres, descrição da página, autor, etc
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="description" content="Free Web
+		tutorials tutorials"> <meta name=
+		"keywords keywords"
+		content="HTML,CSS,XML,JavaScript">
+		<meta name="author" content="Hege Refsnes">
+	</head>

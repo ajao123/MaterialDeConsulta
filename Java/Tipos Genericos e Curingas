@@ -1,0 +1,192 @@
+Tipos Genericos e Curingas
+
+Classe PrintService
+
+public class PrintService<T> {
+
+	private List<T> objets = new ArrayList<>();
+	
+	public void addValue(T value) {
+		objets.add(value);
+	}
+	
+	public T toFirst() {
+		if(objets.isEmpty()) {
+			throw new IllegalStateException("List is empty");
+		}
+		return objets.get(0);
+	}
+	
+	public String print() {
+		StringBuilder sdb = new StringBuilder();
+		sdb.append("[ ");
+		for(T t : objets) {
+			sdb.append(t+" ");
+		}
+		sdb.append("]");
+		return sdb.toString();
+	}
+}
+
+
+Program
+
+public static void main(String[] args) {
+		PrintService<Integer> nums = new PrintService<>();
+		nums.addValue(1);
+		nums.addValue(2);
+		nums.addValue(3);
+		System.out.println(nums.toFirst());
+		System.out.println(nums.print());
+	}
+
+
+--------------------------------------------------------------------//-----------------------------------------------------------------------
+
+Program
+
+public static void main(String[] args) {
+		List<Product> products = new ArrayList<>();
+		products.add(new Product("Computer", 890.50));
+		products.add(new Product("Iphone X", 910.00));
+		products.add(new Product("Tablet", 550.00));
+		
+		CalculationService service = new CalculationService();
+		
+		System.out.println(service.max(products));
+	}
+
+
+Product
+
+public class Product implements Comparable<Product>{
+		.
+		.
+		.
+
+	@Override
+	public int compareTo(Product o) {
+		return valor.compareTo(o.getValor());
+	}
+	
+}
+
+Calculation Service
+
+public class CalculationService{
+	public static <T extends Comparable<? super T>> T max(List<T> list){	
+		if(list.isEmpty())
+			throw new IllegalStateException("List can't be empty.");		
+		T max = list.get(0);
+		for(T t : list) {
+			if(t.compareTo(max) > 0)
+				max = t;
+		}
+		return max;
+	}
+}
+
+
+-------------------------------------------------------------//------------------------------------------------------------------------------
+
+Tipos Curingas
+
+Classe Program
+
+public class Program {
+
+	public static void main(String[] args) {
+		//List<Integer> list = Arrays.asList(1,2,3,4,5);
+		List<Object> list = Arrays.asList(1,2,3,4,5,"joao");
+		print(list);
+	}
+
+	public static void print(List<?> list) {
+		for(Object object : list) {
+			System.out.println(object);
+		}
+	}
+}
+
+-------------------------------------------------------------------//-----------------------------------------------------------------------
+
+Classe Program
+
+public class Program {
+
+	public static void main(String[] args) {
+		List<Shape> shapes = new ArrayList<Shape>();
+		shapes.add(new Rectangle(2.0, 3.0));
+		shapes.add(new Circle(2.0));
+		shapes.add(new Circle(3.0));
+		
+		List<Circle> circles = new ArrayList<Circle>();
+		
+		circles.add(new Circle(2.0));
+		circles.add(new Circle(3.0));
+		circles.add(new Circle(4.0));
+		
+		System.out.println(totalArea(circles));
+	}
+									Aceita um Shape os subtipos de Shape
+	public static double totalArea(List<? extends Shape> shapes) {
+		Double max = 0.0;
+		for(Shape shape : shapes) {
+			max+=shape.Area();
+		}
+		return max;
+	}
+
+}
+
+------------------------------------------------------------------------------//------------------------------------------------------------
+
+Princípio Get/Put
+
+
+//Covariância
+	List<Integer> myInts = Arrays.asList(1,2,3,4,5);
+	List<Double> myDoubles = Arrays.asList(3.14, 6.28);
+	List<Object> myObjs = new ArrayList<Object>();
+
+	//Poder ser Number ou um dos seus subtipos
+	Não podemos adicionar itens pq nãos sabemos qual tipo e o list
+	List<? extends Number> list = myInts;
+
+	//Podemos utilizar o get, pois sabemos que todos os valores estão enquadrados dentro do tipo Number
+
+	Number number = list.get(0);
+
+//Contravariância
+	List<Object> myObjs2 = new ArrayList<Object>();
+	myObjs2.add("Joao");
+	myObjs2.add("Maria");
+	//Pode ser Number ou pode ser um super tipo de Number(Object)
+	List<? super Number> myNums = myObjs;
+		myNums.add(10);
+		myNums.add(3.14);
+	//Nao podemos dar um get pois não sabemos que de que tipo e a lista myNums
+
+
+	List<Shape> shapes = new ArrayList<Shape>();
+		shapes.add(new Rectangle(2.0, 3.0));
+		shapes.add(new Circle(2.0));
+		shapes.add(new Circle(3.0));
+		
+		List<Circle> circles = new ArrayList<Circle>();
+		
+		circles.add(new Circle(2.0));
+		circles.add(new Circle(3.0));
+		circles.add(new Circle(4.0));
+		
+		System.out.println(totalArea(circles));
+
+	public static double totalArea(List<? extends Shape> shapes) {
+		Double max = 0.0;
+		for(Shape shape : shapes) {
+			max+=shape.Area();
+		}
+		return max;
+	}
+----------------------------------------------------------------------//--------------------------------------------------------------------
+

@@ -1,0 +1,180 @@
+SET
+
+add(obj);
+remove(obj);
+contains(obj);	//Guiado pelo hashcode e o equals em caso de classes
+clear();
+size();
+removeIf(predicate);
+
+addAll(other) - união:  adiciona no conjunto os elementos do outro conjunto, sem repetição.
+retainAll(other) - interseção: remove do conjunto os elementos não contidos em other.
+removeAll(other) - diferença: remove do conjunto os elementos contidos em other.
+
+HashSet 
+
+-Não ordenado
+
+Set<String> set = new HashSet<>();
+		set.add("Notebook");
+		set.add("TV");
+		set.add("Tablet");
+		
+		System.out.println(set.contains("Notebook"));
+		
+		for(String s : set) {
+			System.out.println(s);
+		}
+
+			true
+			TV
+			Notebook
+			Tablet
+
+TreeSet
+
+-Ordenado
+
+	Set<String> set = new TreeSet<>();
+		set.add("Notebook");
+		set.add("TV");
+		set.add("Tablet");
+		
+		System.out.println(set.contains("Notebook"));
+		
+		for(String s : set) {
+			System.out.println(s);
+		}
+	
+
+			true
+			Notebook
+			TV
+			Tablet
+
+LinkedHashSet
+-Ordem de chegada
+
+	Set<String> set = new LinkedHashSet<>();
+		set.add("Notebook");
+		set.add("TV");
+		set.add("Tablet");
+		
+		System.out.println(set.contains("Notebook"));
+		
+		for(String s : set) {
+			System.out.println(s);
+		}
+
+			true
+			Notebook
+			TV
+			Tablet
+
+		//set.remove("TV");
+		//set.removeIf(x -> x.charAt(0) == 'T');
+--------------------------------------------------------------------------//-------------------------------------------------------------------------------------
+		Set<Integer> a = new TreeSet<>(Arrays.asList(0,2,4,5,6,8,10));
+		Set<Integer> b = new TreeSet<>(Arrays.asList(5,6,7,8,9,10));
+		
+		//Union
+		Set<Integer> c = new TreeSet<>(a);
+		c.addAll(b);
+		System.out.println(c);
+
+		//Intersection
+		Set<Integer> d = new TreeSet<>(a);
+		d.retainAll(b);
+		System.out.println(d);
+		
+		//Difference
+		Set<Integer> e = new TreeSet<>(a);
+		e.removeAll(b);
+		System.out.println(e);
+
+		[0, 2, 4, 5, 6, 7, 8, 9, 10]
+		[5, 6, 8, 10]
+		[0, 2, 4]
+
+--------------------------------------------------------------------//-------------------------------------------------------------------------------------------
+
+Set<Product> set = new LinkedHashSet<>();
+		set.add(new Product("TV", 900.0));
+		set.add(new Product("Notebook", 1200.0));
+		set.add(new Product("Tablet", 400.0));
+		
+		Set<Product> set2 = new LinkedHashSet<>();
+		set.add(new Product("TV", 900.0));
+		set.add(new Product("Notebook", 1200.0));
+		set.add(new Product("Tablet", 400.0));
+		
+		set.removeIf(x -> x.getValor() < 900);
+		System.out.println(set.contains(new Product("Tablet", 400.0)));
+		System.out.println(set);
+		System.out.println(set.contains(new Product("Tablet", 400.0)));
+
+		false
+		[Product [name=TV, valor=900.0], Product [name=Notebook, valor=1200.0]]
+		false
+
+
+
+		Set<Product> a = new TreeSet<>(Arrays.asList(new Product("TV", 900.0), new Product("Notebook", 1200.0), new Product("Tablet", 400.0)));
+		Set<Product> b = new TreeSet<>(Arrays.asList(new Product("TVs", 1900.0), new Product("Notsebook", 11200.0), new Product("Tabslet", 1400.0)));
+	
+		a.addAll(b);
+		a.removeAll(b);
+		System.out.println(a);
+
+		[Product [name=Notebook, valor=1200.0], Product [name=Tablet, valor=400.0], Product [name=TV, valor=900.0]]
+
+
+		------------------------------------------------------------------------------//------------------------------------------------------------------------
+
+		Class Product
+
+		public class Product implements Comparable<Product>{
+			private String name;
+			private Double valor;
+				.
+				.
+				.
+			@Override
+			public String toString() {
+				return "Product [name=" + name + ", valor=" + valor + "]";
+			}
+
+			@Override
+			public int compareTo(Product o) {
+				// TODO Auto-generated method stub
+				return name.toUpperCase().compareTo(o.getName().toUpperCase());
+			}
+		}
+
+		public class Program {
+
+	public static void main(String[] args) {
+		/*
+		Set<Product> set = new TreeSet<>();
+		set.add(new Product("TV", 900.0));
+		set.add(new Product("Notebook", 1200.0));
+		set.add(new Product("Tablet", 400.0));
+		
+		Set<Product> set2 = new TreeSet<>();
+		set2.add(new Product("TVs", 900.0));
+		set2.add(new Product("Notebsook", 1200.0));
+		set2.add(new Product("Tablset", 400.0));
+		
+		set.addAll(set2);
+		set.removeAll(set2);
+		System.out.println(set);
+		*/
+		Set<Product> a = new TreeSet<>(Arrays.asList(new Product("TV", 900.0), new Product("Notebook", 1200.0), new Product("Tablet", 400.0)));
+		Set<Product> b = new TreeSet<>(Arrays.asList(new Product("TVs", 1900.0), new Product("Notsebook", 11200.0), new Product("Tabslet", 1400.0)));
+	
+		a.addAll(b);
+		a.removeAll(b);
+		System.out.println(a);
+	}
+
+}

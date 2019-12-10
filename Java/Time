@@ -1,0 +1,90 @@
+Funções Time
+
+	SimpleDateFormat e Date:
+		Formatos de Data:
+		
+			SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			SimpleDateFormat sdf2 = new SimpleDateFormat("dd/MM/yyyy");
+			SimpleDateFormat sdf3 = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			
+			Padroniza o tempo com a zona GMT:
+				sdf3.setTimezone(Timezone.getTimezone("GMT"));
+		
+		Date recebe a hora atual do sistema
+			
+			Date date =  new Date(); 
+
+		x1 recebe a data no formato sdf2, Hora, Minutos e Segundos permanecem em 0 em ambos os casos
+
+			Date x1 = sdf2.parse("18/12/2018");
+							or
+			Date x1 = sdf2.parse("18/12/2018 11:12:13");							
+
+		Recebendo tempo através de Milisegundos: PS: O sistema começa a contar a partir de 1 de Janeiro de 1970
+
+			Date x2 = new Date(System.currentTimeMillis());
+			Date x3 = new Date(0L);
+			Date x4 = new Date(1000L * 60L * 60L * 5L);
+
+				x2: Tue Dec 18 17:15:32 GFT 2018
+				x3: Wed Dec 31 21:00:00 GFT 1969
+				x4: Thu Jan 01 02:00:00 GFT 1970	
+
+			System.out.println(sdf1.format(x1));
+			System.out.println(sdf1.format(x2));
+			System.out.println(sdf1.format(x3));
+
+		Padrão ISO 8601 e classe Instant
+
+			Date y3 = Date.from(Instant.parse("2018-06-25T15:42:07Z"));
+				y3: Mon Jun 25 12:42:07 GFT 2018
+
+			sdf3.parse(y3) => y3: 25/06/2018 15:42:07
+
+	Calendar
+
+		Date date = new Date();
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+
+		System.out.println(cal.get(Calendar.HOUR_OF_DAY));
+
+		//Para pegar o mês, adicione 1
+
+
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		cal.add(Calendar.MONTH, n);
+		
+
+		Date checkIn = sdf1.parse("24/09/2019");
+		Date checkOut = sdf1.parse("26/09/2019");
+
+		1) Se checkIn é anterior a checkOut, return TRUE , se não, return FALSE
+			checkIn.before(checkOut);
+
+		2) Se checkIn é posterior a checkOut, return TRUE, se não. return FALSE
+			checkIn.after(checkOut);
+
+		3)Converte um date para milisegundos.
+			checkout.getTime();
+			long diff = checkout.getTime() - checkin.getTime();
+
+		4) Converte diff, que está em milisegundos, para dias.
+
+			TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+			TimeUnit.DAYS.convert(diff, TimeUnit.SECONDS);
+			TimeUnit.DAYS.convert(diff, TimeUnit.MINUTES);
+			TimeUnit.DAYS.convert(diff, TimeUnit.HOURS);
+								.
+								.
+								.
+			TimeUnit.MINUTES.convert(diff, TimeUnit.MILLISECONDS);
+			TimeUnit.HOURS.convert(diff, TimeUnit.SECONDS);
+			TimeUnit.SECONDS.convert(diff, TimeUnit.MINUTES);
+			TimeUnit.NANOSECONDS.convert(diff, TimeUnit.HOURS);
+								.
+								.
+								.
+		
+

@@ -1,0 +1,376 @@
+
+ValidationMessages.properties
+
+
+	Todas os erros de validação receberão esses erros, a menos que alguma mensangem específica seja atribuida a um atributo. 
+
+		javax.validation.constraints.Size.message = Deve estar entre {min} e {max} caracteres.
+		javax.validation.constraints.NotBlank.message = \u00C9 obrigat\u00F3rio.
+		javax.validation.constraints.NotNull.message = \u00C9 obrigat\u00F3rio.
+		javax.validation.constraints.Digits.message = Deve conter no máximo {integer} digitos.
+
+
+	Mensagens específicas que são atribuídas a um determinado atributo:
+
+		#Validacao campos de funcionario
+		NotNull.funcionario.cargo = Selecione um cargo.
+		PastOrPresent.funcionario.dataEntrada = Data deve ser igual ou anterior à data atual.
+
+		#Validacao campos de endereco
+		NotNull.endereco.numero = Número é obrigatório. Informe 0 para s/n.
+		NotNull.endereco.uf = Selecione uma UF.
+		Size.endereco.cep = Deve conter {max} caracteres.
+		Size.cargo.nome = Deve ter no máximo {max} caracteres.
+
+
+	Classes: 
+
+		Classe Funcionario:
+
+			@NotBlank
+			@Size(max = 255, min = 3)
+			@Column(nullable=false, unique=true)
+			private String nome;
+			
+			@NotNull
+			@NumberFormat(style = Style.CURRENCY, pattern = "#,##0.00")
+			@Column(nullable=false, columnDefinition = "DECIMAL(7,2) DEFAULT 0.00")
+			private BigDecimal salario;
+			
+			@NotNull
+			@PastOrPresent(message = "{PastOrPresent.funcionario.dataEntrada}") Buscará a mensagem com titulo de PastOrPresent.funcionario.dataEntrada.
+			@DateTimeFormat(iso = ISO.DATE)
+			@Column(nullable=false, columnDefinition="DATE")
+			private LocalDate dataEntrada;
+			
+			@DateTimeFormat(iso = ISO.DATE)
+			@Column(columnDefinition="DATE")
+			private LocalDate dataSaida;
+			
+			@Valid
+			@OneToOne(cascade=CascadeType.ALL)
+			private Endereco endereco;
+			
+			@NotNull
+			@ManyToOne
+			private Cargo cargo;
+	
+		Classe Endereco:
+
+			@NotBlank
+			@Size(min=3, max=255)
+			@Column(nullable=false)
+			private String logradouro;
+			
+			@NotBlank
+			@Size(min=3, max=255)
+			@Column(nullable=false)
+			private String cidade;
+			
+			@NotBlank
+			@Size(min=3, max=255)
+			@Column(nullable=false)
+			private String bairro;
+			
+			@NotNull
+			@Column(nullable=false, length=2)
+			private UF uf;
+			
+			@NotBlank
+			@Size(min=9, max=9, message = "{Size.endereco.cep}")
+			@Column(nullable=false, length=9)
+			private String cep;
+			
+			@NotNull(message = "{NotNull.endereco.numero}")
+			@Digits(integer = 5, fraction = 0)
+			@Column(nullable=false, length=5)
+			private Integer numero;
+			
+			@Size(max=255)
+			private String complemento;
+
+
+	Controllers: 
+
+		@PostMapping("/salvar")
+		public String salvar(@Valid Funcionario entity, BindingResult result, RedirectAttributes attr) {
+			
+			if(result.hasErrors()) 
+				return "funcionario/cadastro";
+			
+			service.insert(entity);
+			attr.addFlashAttribute("success", "Funcionario adicionado com sucesso.");
+			return "redirect:/funcionarios/cadastrar";
+		}
+
+
+		@GetMapping("/editar/{id}")
+		@PostMapping("/editar")
+		public String editar(@Valid Funcionario entity, BindingResult result, RedirectAttributes attr) {
+
+			if(result.hasErrors()) 
+				return "funcionario/cadastro";
+			
+			
+			service.update(entity, entity.getId());
+			attr.addFlashAttribute("sucess", "Funcionario atualizado com sucesso");
+			return "redirect:/funcionarios/cadastrar";
+		}
+
+		@GetMapping("/cadastrar")
+		public String cadastrar(Funcionario funcionario) {
+			return "funcionario/cadastro";
+		}
+
+messages.properties
+
+
+	#Spring Validator
+
+	Existe.nome= Nome existente.
+	PosteriorDataEntrada.funcionario.dataSaida=Data de saida deve ser posterior a data de entrada
+
+	#Titulos do Sidebar
+	sidebar.link.home = Home
+	sidebar.link.cadastrar = Cadastrar
+	sidebar.link.listar = Listar
+	sidebar.titulo.departamento = Departamentos 
+	sidebar.titulo.cargo = Cargos
+	sidebar.titulo.funcionario = Funcion\u00E1rios
+
+	#Titulos Tabela Funcionario
+	tabela.funcionario.col.nome = Nome
+	tabela.funcionario.col.salario = Sal\u00E1rio
+	tabela.funcionario.col.departamento = Departamento
+	tabela.funcionario.col.cargo = Cargo
+	tabela.funcionario.col.endereco = Endere\u00E7o
+	tabela.funcionario.col.dataEntrada = Admiss\u00E3o
+	tabela.funcionario.col.dataSaida = Demiss\u00E3o 
+	tabela.funcionario.col.acao = A\u00E7\u00E3o
+
+	#Titulos dos Sections
+	section.link.cadastrar.cargo = Cadastrar Cargos
+	section.link.cadastrar.departamento = Cadastrar Departamentos
+	section.link.cadastrar.funcionario = Cadastrar Funcion\u00E1rios
+	section.link.listar.cargo = Listar Cargos
+	section.link.listar.departamento = Listar Departamentos
+	section.link.listar.funcionario = Listar Funcion\u00E1rios
+
+	#Titulos Tabela Departamento
+	tabela.departamento.col.nome = Departamento
+	tabela.departamento.col.acao = A\u00E7\u00E3o
+
+	#Titulos Tabela Cargo
+	tabela.cargo.col.nome = Nome
+	tabela.cargo.col.departamento = Departamento
+	tabela.cargo.col.acao = A\u00E7\u00E3o
+
+	Exemplo 1:
+
+		<div class="table-responsive">
+            
+            	<div th:replace="fragments/alert"></div>
+            
+                <table class="table table-striped table-hover table-sm">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th th:text="#{tabela.funcionario.col.nome}"></th>
+                        <th th:text="#{tabela.funcionario.col.salario}"></th>
+                        <th th:text="#{tabela.funcionario.col.departamento}">Departamento</th>
+                        <th th:text="#{tabela.funcionario.col.cargo}"></th>
+                        <th th:text="#{tabela.funcionario.col.endereco}"></th>
+                        <th th:text="#{tabela.funcionario.col.dataEntrada}"></th>
+                        <th th:text="#{tabela.funcionario.col.dataSaida}"></th>
+                        <th th:text="#{tabela.funcionario.col.acao}"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="funcionario : ${funcionarios}">
+                        <td th:text="${funcionario.id}"></td>
+                        <td th:text="${funcionario.nome}"></td>
+                        <td th:text="|R$ ${{funcionario.salario}}|"></td>
+                        <td th:text="${funcionario.cargo.departamento.nome}"></td>
+                        <td th:text="${funcionario.cargo.nome}"></td>
+                        <td>
+                            <button type="button" class="btn btn-secondary btn-sm" data-container="body"
+                                    data-toggle="popover" data-placement="right"
+                                    th:attr="data-content=${#strings.concat(
+                                    	funcionario.endereco.logradouro, ', ',
+                                    	funcionario.endereco.numero, ' ',
+                                    	funcionario.endereco.complemento, ' - ',
+                                    	funcionario.endereco.bairro, ', ',
+                                    	funcionario.endereco.cidade, ' - ',
+                                    	funcionario.endereco.uf.sigla, ' - ',
+                                    	funcionario.endereco.cep
+                                    )}">
+                                
+                                <span class="oi oi-eye" title="Visualizar" aria-hidden="true"></span>
+                            </button>
+                        </td>
+                        <td th:text="${#temporals.format(funcionario.dataEntrada, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${#temporals.format(funcionario.dataSaida, 'dd/MM/yyyy')}"></td>
+                        <td colspan="2">
+                            <a class="btn btn-info btn-sm" th:href="@{/funcionarios/editar/{id} (id=${funcionario.id})}" role="button">
+                                <span class="oi oi-brush" title="Editar" aria-hidden="true"></span>
+                            </a>
+                            <button th:id="${'btn_funcionarios/excluir/' + funcionario.id}" type="button" class="btn btn-danger btn-sm"
+                                    data-toggle="modal" data-target="#myModal">
+                                <span class="oi oi-circle-x" title="Excluir" aria-hidden="true"></span>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    Exemplo 2:
+
+    	FuncionarioController:
+
+    		@InitBinder
+			public void initBinder(WebDataBinder binder) {
+				binder.addValidators(new FuncionarioValidator(service));
+			}
+
+		FuncionarioValidator:
+
+			public class FuncionarioValidator implements Validator{
+
+				FuncionarioService service;
+				
+				public FuncionarioValidator(FuncionarioService service) {
+					this.service = service;	
+				}
+				
+				@Override
+				public boolean supports(Class<?> clazz) {
+					return Funcionario.class.equals(clazz);
+				}
+
+				@Override
+				public void validate(Object object, Errors errors) {
+					Funcionario entity = (Funcionario) object;
+					
+					if(entity.getId() == null) {
+						if(service.existByName(entity.getNome()) != 0) {      
+							errors.rejectValue("nome", "Existe.nome");
+						}	
+					}else {
+						if(service.existByName(entity.getNome(), entity.getId()) != 0) {    
+							errors.rejectValue("nome", "Existe.nome");
+						}
+					}
+					
+					if(entity.getDataSaida() != null) {
+						if(entity.getDataSaida().isBefore(entity.getDataEntrada())) {
+							errors.rejectValue("dataSaida", "PosteriorDataEntrada.funcionario.dataSaida");
+						}
+					}
+					
+				}
+
+			}
+
+	Exemplo 3:
+
+		messages.properties:
+
+			mensagem.invalida=Mensagem inv\u00E1lida
+			mensagem.integracao=Integridade dos dados nao foi mantida
+			recurso.nao-encontrado=Recurso n\u00E3o encontrado
+
+			//Em qualquer resposta do servidor, 'name', ou 'nome' é trocada por seus respectivos valores, inclusive em outro arquivos de propriedades
+			name=Nome
+			nome=Nome
+			pesquisador.nome=Nome do pesquisador
+
+		ValidationMessages.properties:
+
+			//{0}, caso seja 'name', é trocado por Nome
+
+			javax.validation.constraints.NotNull.message={0} \u00e9 obrigat\u00f3rio(a)
+			javax.validation.constraints.Size.message={0} deve ter o tamanho entre {min} e {max}
+
+		ExceptionHandler:
+		
+			@ControllerAdvice
+			public class DepartamentosExceptionHandler extends ResponseEntityExceptionHandler{
+
+				@Autowired
+				private MessageSource messageSource;
+				
+				
+				//Atributos que não podem ser lidos
+				@Override
+				protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+						org.springframework.http.HttpHeaders headers, HttpStatus status, WebRequest request){
+						
+					String messageUser = messageSource.getMessage("mensagem.invalida", null, LocaleContextHolder.getLocale());
+					String messageDeveloper = ex.toString();
+
+			        List<Error> errors = Arrays.asList(new Error(messageUser, messageDeveloper));
+			        return handleExceptionInternal(ex, errors, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+					
+				}
+				
+				//Atributos inválidos
+				@Override
+				protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request){
+					List<Error> errors = createListErrors(ex.getBindingResult());
+					return super.handleExceptionInternal(ex, errors, headers, status, request);
+				}
+
+				//Integridade dos dados nao foi mantida
+				@ExceptionHandler({DataIntegrityViolationException.class })
+			    public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+
+			        String userMessage = messageSource.getMessage("mensagem.integracao", null, LocaleContextHolder.getLocale());
+			        String developerMessage = ex.toString();
+
+			        List<Error> errors = Arrays.asList(new Error(userMessage, developerMessage));
+
+			        return handleExceptionInternal(ex, errors, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+			    }
+				
+				@ExceptionHandler({ EmptyResultDataAccessException.class })
+				public ResponseEntity<Object> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex, WebRequest request) {
+					String messageUser = messageSource.getMessage("recurso.nao-encontrado", null, LocaleContextHolder.getLocale());
+					String messageDeveloper = ex.toString();
+					List<Error> erros = Arrays.asList(new Error(messageUser, messageDeveloper));
+					return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+				}
+
+				private List<Error> createListErrors(BindingResult bindingResult){
+					List<Error> errors = new ArrayList<>();
+					
+					for(FieldError fieldError: bindingResult.getFieldErrors()) {
+						String messageUser = messageSource.getMessage(fieldError, LocaleContextHolder.getLocale());
+						String messageDeveloper = fieldError.toString();
+						errors.add(new Error(messageUser, messageDeveloper));
+					}
+					
+					return errors;
+				}
+				
+				public static class Error{
+					private String messageUser;
+					private String messageDeveloper;
+					
+					public Error(String messageUser, String messageDeveloper) {
+						this.messageUser = messageUser;
+						this.messageDeveloper = messageDeveloper;
+					}
+
+					public String getMessageUser() {
+						return messageUser;
+					}
+
+					public String getMessageDeveloper() {
+						return messageDeveloper;
+					}		
+					
+				}
+				
+			}

@@ -1,0 +1,1744 @@
+CursoUdemyAjax:
+
+	Controllers:
+
+		1 - Encaminhando para uma página
+
+				HomeController:
+
+					@Controller
+					public class HomeController {
+
+						@GetMapping("/")
+						public String init() {
+							return "redirect:/promocao/add";
+						}
+					}
+
+		2 - Capturando MetaTags
+
+				SocialMetaTagService:
+
+					@Service
+					public class SocialMetaTagService {
+						
+						private static Logger log = LoggerFactory.getLogger(SocialMetaTagService.class);
+						
+						public SocialMetaTag getSocialMetaTagByUrl(String url) {
+
+							// As tags podem ser tanto de Twitter quanto de Open Graph, então tentamos primeiro
+							// para Twitter e depois para Open Graph. 
+
+							SocialMetaTag twitter = getTwitterCardByUrl(url);
+							
+							if(!isEmpty(twitter)) { return twitter;}
+							
+							SocialMetaTag openGraph = getOpenGraphByUrl(url);
+							
+							if(!isEmpty(openGraph)) { return openGraph;}
+							
+							
+							return null;
+						}
+						
+						private SocialMetaTag getTwitterCardByUrl(String url) {
+							
+							SocialMetaTag tag = new SocialMetaTag();
+							try {
+								Document doc = Jsoup.connect(url).get();
+								tag.setTitle(doc.head().select("meta[name=twitter:title]").attr("content"));
+								tag.setSite(doc.head().select("meta[name=twitter:site]").attr("content"));
+								tag.setImage(doc.head().select("meta[name=twitter:image]").attr("content"));
+								tag.setUrl(doc.head().select("meta[name=twitter:url]").attr("content"));
+							}catch(IOException e) {
+								log.error(e.getMessage(), e.getCause());
+							}
+							
+							return tag;
+						}
+						
+						private SocialMetaTag getOpenGraphByUrl(String url) {
+							
+							SocialMetaTag tag = new SocialMetaTag();
+							try {
+								Document doc = Jsoup.connect(url).get();
+								tag.setTitle(doc.head().select("meta[property=og:title]").attr("content"));
+								tag.setSite(doc.head().select("meta[property=og:site_name]").attr("content"));
+								tag.setImage(doc.head().select("meta[property=og:image]").attr("content"));
+								tag.setUrl(doc.head().select("meta[property=og:url]").attr("content"));
+							}catch(IOException e) {
+								log.error(e.getMessage(), e.getCause());
+							}
+							return tag;
+						}
+						
+						private boolean isEmpty(SocialMetaTag tag) {
+							
+							if (tag.getImage().isEmpty()) { return true;}
+							if (tag.getSite().isEmpty()) {return true;}
+							if (tag.getTitle().isEmpty()) { return true;}
+							if (tag.getUrl().isEmpty()) {return true;}
+							
+							return false;
+						}
+						
+					}
+
+				SocialMetaTagController:
+
+					@Controller
+					@RequestMapping("/meta")
+					public class SocialMetaTagController {
+
+						@Autowired
+						private SocialMetaTagService service;
+						
+						// Recebe a url passada como 
+
+						@PostMapping("/info")
+						public ResponseEntity<SocialMetaTag> getDadosViaUrl(@RequestParam("url") String url){
+
+							// Envia a url para recuperar uma SocialMetaTag
+
+							SocialMetaTag tag = service.getSocialMetaTagByUrl(url);
+							
+							return tag != null ? ResponseEntity.ok(tag) : ResponseEntity.notFound().build();
+							
+						}
+						
+					}
+
+				Página promo-add Html:
+
+					<!DOCTYPE html>
+					<html layout:decorate="~{layout}">
+					<head>
+					    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+					</head>
+					<body>
+
+					<div class="corpo" layout:fragment="corpo">
+
+					    <div id="loader-form" class="pre-load"></div>
+
+					    <form id="form-add-promo" action="#">
+
+					        <div id="alert"></div>
+
+					        <div class="form-group">
+					            <label for="linkPromocao">Link da Oferta</label>
+					            <input type="url" class="form-control" id="linkPromocao" name="linkPromocao" aria-describedby="linkOferta"
+					                   placeholder="Ex.: http://www..."/>
+					            <small id="linkOferta" class="form-text text-muted">Insira o link da promocao correspondente a oferta.
+					            </small>
+					            <div id="error-linkPromocao" class=""></div>
+					        </div>
+					        <div class="form-group">
+					            <label for="titulo">Título da Oferta</label>
+					            <input type="text" class="form-control" id="titulo" name="titulo" aria-describedby="tituloOferta"/>
+					            <small id="tituloOferta" class="form-text text-muted">Carregamento automático, mas pode ser editado.</small>
+					            <div id="error-titulo"></div>
+					        </div>
+
+					        <div class="form-row">
+					            <div class=" col-md-4">
+					                <div class="card" style="width: 18rem;">
+					                    <div class="card-header">Imagem</div>
+
+					                    // Loader
+
+					                    <span class="mx-auto" id="loader-img"></span>
+					                    <img id="linkImagem" name="linkImagem" class="card-img-top" th:src="@{/images/promo-dark.png}"
+					                         width="308px"/>
+					                    <div class="card-body bg-light">
+					                        <h5 id="site" class="card-title"></h5>
+					                    </div>
+					                </div>
+					            </div>
+					            <div class="col-md-8">
+					                <div class="form-group">
+					                    <label for="preco">Preço da Oferta</label>
+					                    <input type="text" class="form-control" id="preco" name="preco" placeholder="ex.: 59,99"
+					                           data-mask="#.##0,00"
+					                           data-mask-reverse="true"/>
+					                    <div id="error-preco" class=""></div>
+					                </div>
+					                <div class="form-group">
+					                    <label for="categoria">Categoria do Produto</label>
+					                    <select id="categoria" name="categoria" class="form-control">
+					                        <option value="">Selecione</option>
+					                        <option th:each="c : ${categorias}" th:text="${c.titulo}" th:value="${c.id}">...</option>
+					                    </select>
+					                    <div id="error-categoria"></div>
+					                </div>
+					                <div class="form-group">
+					                    <label for="descricao">Descrição da Oferta</label>
+					                    <textarea class="form-control" id="descricao" name="descricao"
+					                              placeholder="Algo sobre a promoção ou produto..."></textarea>
+					                </div>
+					            </div>
+					        </div>
+					        <div class="row p-3">
+					            <button id="btn-og" class="btn btn-primary btn-lg btn-block">Cadastrar</button>
+					            <span id="loader-img-btn"></span>
+					        </div>
+					    </form>
+
+					</div>
+					<script th:src="@{/js/promo-add.js}" th:fragment="js"></script>
+					</body>
+					</html>
+
+				Página promo-add JS:
+
+					//funcao para capturar as meta tags
+					$("#linkPromocao").on('change', function(){
+						
+						// Pegar o valor presente em linkPromocao
+
+						var url = $(this).val();
+						
+						// Caso a url tenha mais de 7 caracteres(https://) 
+						if(url.length > 7){
+							
+							// Método
+							$.ajax({
+								method:"POST",
+
+								// O valor da url(link da promocão) será inviado para: "/meta/info", (RequestParam).
+
+								url: "/meta/info?url=" + url,
+
+								// Não guardar nada na cache(Pode gerar erros)
+
+								cache: false,
+
+								// O que se faz antes de enviar o link da promocao
+
+								beforeSend: function(){
+
+									// Remove qualquer alerta (Success e Danger) que possam estar na página
+
+									$("#alert").removeClass("alert alert-danger alert-success").text('');
+
+									// Zera o valor presente em "Titulo, site e a Imagem"
+									// Adiciona um load na imagem, enquanto a mesma não é retornada.
+
+									$("#titulo").val("");
+									$("#site").text("");
+
+									//Busca a imagem através da url
+									$("#linkImagem").attr("src", "");
+									$("#loader-img").addClass("loader");
+									
+								},
+								//Caso os dados tenham sido acessados com sucesso
+
+								success: function( response ){
+
+									//Printa a resposta no console: response; 
+
+									console.log(response);
+
+									//Response é uma SocialMetaTag(Classe - Model) 
+									// A url não é necessária retornar, pois ela já está lá
+
+									$("#titulo").val(response.title);
+									$("#site").text(response.site.replace("@",""));
+									$("#linkImagem").attr("src", response.image);
+								},
+
+								// Caso tenha ocorrido um erro
+								
+								statusCode:{
+									404: function(){
+
+										// Adiciona um Alerta de erro
+										// Perceba que com Ajax, não precisamos usar um fragment Alert, quando identificamos um erro, o adicionamos via Ajax
+
+										$("#alert").addClass("alert alert-danger").text("Nenhuma informação pode ser recuperada dessa url");
+										$("#linkImagem").attr("src", "/images/promo-dark.png");
+									},
+									500: function(){
+
+										// Adiciona um Alerta de erro
+
+										$("#alert").addClass("alert alert-danger").text("Ocorreu um erro no sistema. Tente mais tarde");
+										$("#linkImagem").attr("src", "/images/promo-dark.png");
+									}
+								},
+								complete: function(){
+									// Remove o loader
+									$("#loader-img").removeClass("loader");
+								}
+							});	
+						}
+					});
+
+		3 - Cadastrando Promocao No Sistema
+
+				PromocaoController:
+
+					@PostMapping("/save")
+					public ResponseEntity<?> salvarPromocao(@Valid Promocao entity, BindingResult result) {	
+						
+						// Erros dos atributos(validação)
+
+						if(result.hasErrors()) {
+							Map<String, String> errors = new HashMap<>();
+							for(FieldError error : result.getFieldErrors()) {
+								errors.put(error.getField(), error.getDefaultMessage());
+							}
+							
+							// Erro 422
+							return ResponseEntity.unprocessableEntity().body(errors);
+						}
+						
+						log.info("Promocao {}", entity.toString());	
+
+						// Pega a data atual que a promoção está sendo inserida.
+						entity.setDtCadastro(LocalDateTime.now());
+						service.insert(entity);
+
+						return ResponseEntity.ok().build();
+						
+					}
+
+				Página promo-add Html:
+
+					<!DOCTYPE html>
+					// Puxa o layout
+					<html layout:decorate="~{layout}">
+					<head>
+					    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+					</head>
+					<body>
+
+					<div class="corpo" layout:fragment="corpo">
+
+					    <div id="loader-form" class="pre-load"></div>
+
+					    <form id="form-add-promo" action="#">
+
+					        <div id="alert"></div>
+
+					        <div class="form-group">
+					            <label for="linkPromocao">Link da Oferta</label>
+					            <input type="url" class="form-control" id="linkPromocao" name="linkPromocao" aria-describedby="linkOferta"
+					                   placeholder="Ex.: http://www..."/>
+					            <small id="linkOferta" class="form-text text-muted">Insira o link da promocao correspondente a oferta.
+					            </small>
+
+					            // Mensagem de erro: Link da promocao. O mesmo vai se seguir para os demais paramêtros do formulário.
+
+					            <div id="error-linkPromocao" class=""></div>
+					        </div>
+					        <div class="form-group">
+					            <label for="titulo">Título da Oferta</label>
+					            <input type="text" class="form-control" id="titulo" name="titulo" aria-describedby="tituloOferta"/>
+					            <small id="tituloOferta" class="form-text text-muted">Carregamento automático, mas pode ser editado.</small>
+					            <div id="error-titulo"></div>
+					        </div>
+
+					        <div class="form-row">
+					            <div class=" col-md-4">
+					                <div class="card" style="width: 18rem;">
+					                    <div class="card-header">Imagem</div>
+					                    <span class="mx-auto" id="loader-img"></span>
+					                    <img id="linkImagem" name="linkImagem" class="card-img-top" th:src="@{/images/promo-dark.png}"
+					                         width="308px"/>
+					                    <div class="card-body bg-light">
+					                        <h5 id="site" class="card-title"></h5>
+					                    </div>
+					                </div>
+					            </div>
+					            <div class="col-md-8">
+					                <div class="form-group">
+					                    <label for="preco">Preço da Oferta</label>
+					                    <input type="text" class="form-control" id="preco" name="preco" placeholder="ex.: 59,99"
+					                           data-mask="#.##0,00"
+					                           data-mask-reverse="true"/>
+					                    <div id="error-preco" class=""></div>
+					                </div>
+					                <div class="form-group">
+					                    <label for="categoria">Categoria do Produto</label>
+					                    <select id="categoria" name="categoria" class="form-control">
+					                        <option value="">Selecione</option>
+					                        <option th:each="c : ${categorias}" th:text="${c.titulo}" th:value="${c.id}">...</option>
+					                    </select>
+					                    <div id="error-categoria"></div>
+					                </div>
+					                <div class="form-group">
+					                    <label for="descricao">Descrição da Oferta</label>
+					                    <textarea class="form-control" id="descricao" name="descricao"
+					                              placeholder="Algo sobre a promoção ou produto..."></textarea>
+					                </div>
+					            </div>
+					        </div>
+					        <div class="row p-3">
+					            <button id="btn-og" class="btn btn-primary btn-lg btn-block">Cadastrar</button>
+					            <span id="loader-img-btn"></span>
+					        </div>
+					    </form>
+
+					</div>
+					// Todos os JS em todoas as páginas são fragmentos que serão levados para o Layout
+					<script th:src="@{/js/promo-add.js}" th:fragment="js"></script>
+					</body>
+					</html>
+
+				Página promo-add JS:
+
+					//submit do formulario para o controller
+
+					// Padrão: evt
+
+					$("#form-add-promo").submit(function(evt){
+						//bloquear o comportamento padrão do submit
+						evt.preventDefault();
+						
+						// "Criando" uma variável do tipo "Promocao"
+
+						var promo = {};
+						promo.linkPromocao = $("#linkPromocao").val();
+						promo.descricao = $("#descricao").val();
+						promo.preco = $("#preco").val();
+						promo.titulo = $("#titulo").val();
+						promo.categoria = $("#categoria").val();
+						promo.linkImagem = $("#linkImagem").attr("src");
+						promo.site = $("#site").text();
+						promo.likes = 0;
+						
+						console.log('promo > ', promo);
+						
+						$.ajax({
+							method: "POST",
+							url: "/promocao/save",
+
+							// data: Valor a ser enviado na requisicao
+							data: promo,
+							
+							//Ações a se tomar antes de realizar o envio
+
+							beforeSend: function(){
+								
+								//removendo as mensagens de erro
+								$("span").closest('.error-span').remove();
+								
+								//remover as bordas vermelhas
+								$(".is-invalid").removeClass("is-invalid");
+					//			$("#categoria").removeClass("is-invalid");
+					//			$("#preco").removeClass("is-invalid");
+					//			$("#linkPromocao").removeClass("is-invalid");
+					//			$("#titulo").removeClass("is-invalid");
+					//			
+								//Esconde o formulário
+								$("#form-add-promo").hide();
+
+								//habilita o loading
+								$("#loader-form").addClass("loader").show();
+							},
+							success: function(){
+								
+								//Resetar(Limpar) dados do formulário
+
+								$("#form-add-promo").each(function(){
+									this.reset();
+								});
+								$("#linkImagem").attr("src", "/images/promo-dark.png");
+								$("site").text("");
+								$("#alert").
+								removeClass("alert alert-danger").
+								addClass("alert alert-success").
+								text("OK !!! Promoção cadastrada com sucesso.");
+							},
+							statusCode:{
+
+								422: function(xhr){
+
+									//Atribuir erros aos paramêtros inválidos nos formulários por meio dos seus ids. 
+
+									console.log('status error:', xhr.status);
+									var errors = $.parseJSON(xhr.responseText);
+									$.each(errors, function(key, val){
+										$("#" + key).addClass("is-invalid");	// Torna a borda vermelha
+										$("#error-" + key).						// <div> relacionado a cada paramêtro
+ 										addClass("invalid-feedback").			// Classe Invalid-Feedback
+										append("<span class='error-span'>" + val + "</span>");	// val = Mensagem, append: Acrescenta dentro do <div>
+									});
+									
+								}
+							},
+							// Qualquer erro, xhr: Padrão
+							error: function(xhr){
+								console.log("> error: ", xhr.responseText);
+								$("#alert").addClass("alert alert-danger").text("Não foi possível salvar esta promoção.");
+							},
+
+							complete: function(){	//fade out: Desaparecer, fade in: Aparecer Gradualmente
+								$("#loader-form").fadeOut(800, function(){
+									$("#form-add-promo").fadeIn(250);
+
+									// Remover loader
+									$("#loader-form").removeClass("loader");
+								});
+							}
+						});
+						
+					});
+
+		4 - Listando Promoções
+
+			PromocaoServiceImpl:
+
+				@Service
+				public class PromocaoServiceImpl implements PromocaoService{
+
+					@Autowired
+					PromocaoRepository repository;
+					
+					@Override
+					public void insert(Promocao entity) {
+						repository.save(entity);
+					}
+
+					@Override
+					public void update(Promocao entity, Long id) {
+						Promocao entity2 =  repository.findById(id).get();
+						BeanUtils.copyProperties(entity, entity2, "id");
+						repository.save(entity2);
+					}
+
+					@Override
+					public Promocao findById(Long id) {
+						return repository.findById(id).get();
+					}
+
+					@Override
+					public List<Promocao> getAll() {		
+						return repository.findAll();
+					}
+					
+					@Override
+					public Page<Promocao> findByPreco(BigDecimal preco, Pageable pageable) {		
+						return repository.findByPreco(preco, pageable);
+					}
+
+					@Override
+					public Page<Promocao> getAllPageable(Pageable pageable) {		
+						return repository.findAll(pageable);
+					}
+					
+					@Override
+					public Page<Promocao> getAllDesc() {
+						PageRequest pageRequest = PageRequest.of(0, 8);
+						return repository.getPromocaoByDataDesc(pageRequest);
+					}
+					
+					@Override
+					public void delete(Long id) {
+						repository.deleteById(id);
+					}
+
+					@Override
+					public Page<Promocao> getBySite(String site) {
+						PageRequest pageRequest = PageRequest.of(0, 8);
+						return repository.getPromocaoBySite(site, pageRequest);
+					}
+
+					@Override
+					public List<String> getSiteByTermo(String site) {
+						return repository.getSitesByTermo(site);
+					}
+
+					@Override
+					public Page<Promocao> getCards(String site, Integer page) {
+						
+						PageRequest pageRequest = PageRequest.of(page, 8);
+						
+						if(site.isEmpty()) {
+							return repository.getPromocaoByDataDesc(pageRequest);	
+						}else {
+							return repository.getPromocaoBySite(site, pageRequest);	
+						}
+						
+					}
+
+					@Override
+					public Integer addLike(Long id) {
+						repository.updateAdicionarLike(id);
+						return repository.findLikesById(id);
+					}
+
+					@Override
+					public Page<Promocao> findByTituloOrSiteOrCategoria(String search, Pageable pageable) {
+						return repository.findByTituloOrSiteOrCategoria(search, pageable);
+					}
+
+				}
+
+			PromocaoController:
+
+				@Controller
+				@RequestMapping("/promocao")
+				public class PromocaoController {
+
+					private static Logger log = LoggerFactory.getLogger(SocialMetaTagService.class);
+					
+					@Autowired
+					private PromocaoService service;
+					
+					@Autowired	
+					private CategoriaService categoriaService;
+					
+					
+					@GetMapping("/table")
+					public String showTabela() {
+						return "promo-datatables";
+					}
+		
+					@GetMapping("/list")
+					public String listarOfertas(ModelMap model) {
+						// Retorna uma lista de promocões em ordem inversa de Cadastro, as últimas 8 promoções adicionadas.
+						model.addAttribute("promocoes", service.getAllDesc());
+						return "promo-list";
+					}
+					
+					@GetMapping("/list/ajax")
+					public String listarCards(@RequestParam(name="page", defaultValue = "1") int page, 
+											  @RequestParam(name="site", defaultValue = "") String site, 
+											  ModelMap model) {
+						
+						model.addAttribute("promocoes", service.getCards(site, page));	
+						return "promo-card";
+					}
+					
+					@ModelAttribute("categorias")
+					public List<Categoria> getCategorias(){
+						return categoriaService.getAll();
+					}
+					// Adicionar Like
+					@PostMapping("/like/{id}")
+					public ResponseEntity<?> adicionarLikes(@PathVariable("id") Long id){
+						return ResponseEntity.ok(service.addLike(id));
+					}				
+					
+					// Retorna uma lista que contém todos os nomes de sites que contém o termo passado.
+					@GetMapping("/site")
+					public ResponseEntity<?> getSitesByTermo(@RequestParam(name="termo") String termo){
+						return ResponseEntity.ok(service.getSiteByTermo(termo));
+					}
+
+					// Retornar a lista com base no site
+					@GetMapping("/site/list")
+					public String getPromocaoBySite(@RequestParam(name="site") String site, ModelMap model){
+						
+						model.addAttribute("promocoes", service.getBySite(site));	
+						return "promo-card";
+					}
+					
+				}
+
+			Página promo-list:
+
+				<!DOCTYPE html>
+				<html layout:decorate="~{layout}">
+				<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+				</head>
+				<body>
+
+					<div class="corpo" layout:fragment="corpo">
+						<main role="main">
+						<section class="jumbotron text-center pt-3 pb-3">
+							<div class="container">
+								<h1 class="jumbotron-heading">Promo Spring - Ofertas mais recentes</h1>
+								<p class="lead text-muted">Aproveite a lista de ofertas e pague	menos por seus desejos.</p>
+
+								// AutoComplete
+								<form id="form-autocomplete">
+									<div class="form-row">
+										<div class="form-group col-md-10">
+											<input id="autocomplete-input" name="site" type="text" class="form-control" placeholder="Ex.: udemy">
+										</div>
+										<div class="form-group col-md-2">
+											<button id="autocomplete-submit" type="button" class="btn btn-primary">Confirmar</button>
+										</div>
+									</div>
+								</form>
+
+							</div>
+						</section>
+
+						<div class="album py-5 bg-light">
+							<div class="container">
+
+								<div class="form-group">
+									<button id="btn-alert"
+										    class="btn btn-warning btn-lg btn-block hidden"	style="display: none;"></button>
+								</div>
+
+								<div class="row" th:insert="promo-card">
+									
+								</div>
+
+								<div id="loading">
+									<div id="loader-img" class="mx-auto loader"></div>
+									<a id="fim-btn" type='button' href='#' class='btn btn-info mx-auto'>Fim! Voltar ao topo</a>
+								</div>
+							</div>
+						</div>
+						</main>
+					</div>
+
+					<script th:src="@{/js/promo-list.js}" th:fragment="js"></script>
+				</body>
+				</html>
+
+			Página promo-card:
+
+				<div class="card-group col-md-3 pb-4" th:each="promo : ${promocoes}">
+					<div th:id="${promo.id}" class="card">
+						<div class="block-img">
+							<img class="card-img-top" th:src="${promo.linkImagem}" alt="Card image cap">
+						</div>
+						<div class="card-body">
+							<div>
+								<p class = "card-subtitle mb-2 text-muted"
+								th:text="${#strings.abbreviate(promo.titulo, 40)}">titulo</p>
+							</div>
+							<h5 class="card-title" th:text="${promo.site}">site.com.br</h5>
+							<p class="card-text" th:text="${promo.descricao}">sobre a promoção</p>
+							<div>
+								<h6 class="badge badge-primary" th:text="|R$ ${{promo.preco}}|">R$ 9,99</h6>
+							</div>
+							<div class="btn-group">
+								<button th:id="${'likes-count-' + promo.id}" type="button"
+									class="btn btn-sm btn-outline-secondary"
+									th:text="${promo.likes}"></button>
+								<button th:id="${'likes-btn-' + promo.id}" type="button"
+									class="btn btn-sm btn-outline-secondary">
+									<i class="far fa-thumbs-up"></i>
+								</button>
+								<a th:href="${promo.linkPromocao}"
+									class="btn btn-sm btn-outline-secondary" role="button"
+									aria-pressed="true" target="new">Ver Oferta</a>
+							</div>
+						</div>
+						<div class="card-footer">
+							<small class="text-muted"
+								th:text="${#temporals.format(promo.dtCadastro, 'dd/MM/yyyy')}">9 mins</small>
+						</div>
+					</div>
+				</div>
+
+			Página promo-list.js:
+
+				//Usamos pageable, e pageNumber marcará a página a ser buscada
+				var pageNumber = 0;
+
+				// Ao abrir o documento
+				$(document).ready(function(){
+					$("#loader-img").hide();
+					$("#fim-btn").hide();
+					init();
+				});
+
+				// efeito infinite scroll, acrescentaremos mais itens na lista caso o scroll chegue ao final da página.
+				$(window).scroll(function(){
+					
+					var scrollTop = $(this).scrollTop();
+					//Tamanho do documento - Tamanho da janela
+					var conteudo = $(document).height() - $(window).height();
+					
+					console.log('scrollTop:', scrollTop, ' | ', 'conteudo:', conteudo, 
+							' | ','Document.height:', $(document).height(), 
+							' | ','Window.height:',  $(window).height(),  );
+					
+					if (scrollTop >= conteudo){
+						// Incrementa o número da página
+						pageNumber++;
+						setTimeout(function(){
+						// Chama a função para adicionar mais itens na lista
+								loadByScrollBar();
+								teste();
+
+						}, 200);
+					}
+					
+				});
+
+				//Trazer mais itens para a lista
+				function loadByScrollBar(){
+					
+					// Pegamos o valor contido no input de pesquisa. Isso é necessário para sabermos se o sistema está trantando com todas as promoções, independente de
+					sites, ou as promoções de um site específico. 
+
+					var site = $("#autocomplete-input").val();
+					
+					$.ajax({
+						method: "GET",
+
+						url: "/promocao/list/ajax",
+
+						// Aqui especificamos o número da página a ser retornada e o site, caso tenha algo. 
+						data: {
+							page: pageNumber,
+							site: site
+						},
+
+						// Antes de carregar novas imagens, adicionamos o loader
+
+						beforeSend: function(){
+							$("#loader-img").show();
+						},
+
+						// Em caso de sucesso, acrescentamos a resposta(Que é um promo-card, já com a lista(Das novas Promocões) inserida, então essa lista é unida a outra lista)
+						success: function( response ){
+							//console.log("resposta > ", response);
+							// Verifica se veio itens na resposta
+							if(response.length > 150){
+								$(".row").fadeIn(250, function(){
+									$(this).append(response); 	// Acrescentando a nova lista a lista atual
+								});
+							}else{
+								// Mostrar o botão para voltar ao topo
+								$("#fim-btn").show();
+								$("#loader-img").removeClass("loader");
+							}
+							
+						},
+						error: function(xhr){
+							alert("Ops, ocorreu um erro: " + xhr.status + " - " + xhr.statusText);
+						},
+						complete: function(){
+							$("#loader-img").hide();
+						}
+					});
+				}
+
+				//autocomplete(Função Específica)
+				$("#autocomplete-input").autocomplete({
+					source: function(request, response){
+						$.ajax({
+							method: "GET",
+							url: "/promocao/site",
+							data: {
+								termo: request.term
+							},
+							success: function(result){
+								response(result);
+							}
+						});
+					}
+				});
+
+				// Retorna todos as promoçãos relacionadas a um site específico
+				$("#autocomplete-submit").on("click", function(){
+					var site = $("#autocomplete-input").val();
+					$.ajax({
+						method: "GET",
+						url: "/promocao/site/list",
+						data: {
+							site: site
+						},
+						beforeSend: function(){
+							pageNumber = 0;
+							$("#fim-btn").hide();
+							$(".row").fadeOut(400, function(){
+								$(this).empty();
+							});
+						},
+						success: function(response){
+							$(".row").fadeIn(250, function(){
+								$(this).append(response);
+							});
+						}, 
+						error: function(xhr){
+							alert("Ops, algo deu errado: " + xhr.status + ", " + xhr.statusText);
+						}
+					});
+				});
+
+				// adicionar likes
+				// $("button[id*='likes-btn-']").on("click", function(){, Utilizamos a função abaixo, e não a dessa linha, pq a mesma não engloba
+				// os próximos itens que podem vir a ser adicionados a partir da barra de rolagem.
+
+				$(document).on("click", "button[id*='likes-btn-']", function(){
+					var id = $(this).attr("id").split("-")[2];
+					console.log("id: ", id);
+					
+					$.ajax({
+						method: "POST",
+						url: "/promocao/like/" + id,
+						success: function(response){
+							console.log("response: ", response);
+							$("#likes-count-"+id).text(response);
+						},
+						error: function(xhr){
+							alert("Ops, ocorreu um erro: " + xhr.status + ", " + xhr.statusText);
+						}
+					});
+					
+				});
+
+
+				function teste(){
+					var aki = "aki";
+					$.ajax({
+						method: "POST",
+						url: "/promocao/teste",
+						// data: Valor a ser enviado na requisicao
+						data: {
+							aki:aki
+						},
+					});
+				}
+
+		5 - DataTables
+
+			PromocaoDataTableServiceImpl:
+
+				public class PromocaoDataTableServiceImpl {
+
+					// É necessário manter a mesma ordem e mesmos nomes quando inserir os valores(Ajax)
+					private String[] cols = {
+							"id", "titulo", "site", "linkPromocao", "descricao", "linkImagem",
+							"preco", "likes", "dtCadastro", "categoria"
+					};
+					
+
+					public Map<String, Object> execute(PromocaoService service, HttpServletRequest request){
+						
+						int start = Integer.parseInt(request.getParameter("start"));	// Número da primeira linha da página
+						int length = Integer.parseInt(request.getParameter("length"));	// Número de elementos na página
+						int draw = Integer.parseInt(request.getParameter("draw"));
+						
+						int current = currentPage(start, length);	//Página atual
+						
+						String column = columnName(request);			// Coluna para orientar a ordenação
+						Sort.Direction direction = orderBy(request);	// Ordem da ordenação
+						String search = searchBy(request);				// Aba de pesquisa
+															// página´, número de elementos na página, direção e coluna
+						Pageable pageable = PageRequest.of(current, length, direction, column);
+						
+						Page<Promocao> page = queryBy(search, service, pageable);
+						
+						Map<String, Object> json = new LinkedHashMap<>();
+						json.put("draw", draw);
+						json.put("recordsTotal", page.getTotalElements());
+						json.put("recordsFiltered", page.getTotalElements());
+						json.put("data", page.getContent());
+						
+						return json;
+					}
+
+
+					private Page<Promocao> queryBy(String search, PromocaoService service, Pageable pageable) {
+						
+						// Primeiro verificamos se o search está vazio, caso esteja vazio, fazemos uma busca para todos as promõções
+						if(search.isEmpty()) {
+							return service.getAllPageable(pageable);
+						}
+						
+						// Caso contrário, primeiro vericaremos se é uma pesquisa por preço, avalaiando os caracteres presentes
+						if(search.matches("^[0-9]+([.,][0-9]{2})?$")) {
+							search = search.replace(",", ".");
+							return service.findByPreco(new BigDecimal(search), pageable);
+						}
+						
+						// Caso também seja inválido, buscamos promoções possuem os caracteres, trazidos pela request, presentes em seus atributos(titulo, site ou categoria)
+
+						// Retorna uma página de promoções
+						return service.findByTituloOrSiteOrCategoria(search, pageable);
+						
+					}
+					
+					// Retorna o search
+					private String searchBy(HttpServletRequest request) {
+						
+						return request.getParameter("search[value]").isEmpty() ? "" : request.getParameter("search[value]"); 
+						
+					}
+
+					// Retorna a ordem
+					private Direction orderBy(HttpServletRequest request) {
+						String order = request.getParameter("order[0][dir]");
+						Sort.Direction sort = Sort.Direction.ASC;
+						
+						if(order.equalsIgnoreCase("desc")) {
+							sort = Sort.Direction.DESC;
+						}
+						return sort;
+					}
+					// Retorna a coluna
+					private String columnName(HttpServletRequest request) {
+						int iCol = Integer.parseInt(request.getParameter("order[0][column]"));
+						return cols[iCol];
+					}
+					
+					private int currentPage(int start, int length) {
+						//0			1			2
+						//0-9	|	10-19	|	20-29
+						return start/length;
+					}
+					
+				}
+
+			PromocaoController:
+
+				@Controller
+				@RequestMapping("/promocao")
+				public class PromocaoController {
+
+					private static Logger log = LoggerFactory.getLogger(SocialMetaTagService.class);
+					
+					@Autowired
+					private PromocaoService service;
+					
+					@Autowired	
+					private CategoriaService categoriaService;
+					
+					
+					@GetMapping("/table")
+					public String showTabela() {
+						return "promo-datatables";
+					}
+					
+					// Recebe uma request, e retorna um map contendo as promoções
+					@GetMapping("/datatables/server")
+					public ResponseEntity<?> datatables(HttpServletRequest request){
+						Map<String, Object> data = new PromocaoDataTableServiceImpl().execute(service, request);
+						return ResponseEntity.ok(data);
+					}
+					
+					@ModelAttribute("categorias")
+					public List<Categoria> getCategorias(){
+						return categoriaService.getAll();
+					}
+					// Retorna as informações para o modal
+					@GetMapping("/edit/{id}")
+					public ResponseEntity<?> preEditarPromocao(@PathVariable("id") Long id){
+						return ResponseEntity.ok(service.findById(id) );
+					}
+					
+					@PostMapping("/edit")
+					public ResponseEntity<?> editarPromocao(@Valid PromocaoDTO promocaoDTO, BindingResult result){
+						
+						if(result.hasErrors()) {
+							Map<String, String> errors = new HashMap<>();
+							for(FieldError error : result.getFieldErrors()) {
+								errors.put(error.getField(), error.getDefaultMessage());
+							}
+							
+							return ResponseEntity.unprocessableEntity().body(errors);
+						}
+						
+						Promocao promocao = service.findById(promocaoDTO.getId());
+						promocao.setTitulo(promocaoDTO.getTitulo());
+						promocao.setPreco(promocaoDTO.getPreco());
+						promocao.setCategoria(promocaoDTO.getCategoria());
+						promocao.setLinkImagem(promocaoDTO.getLinkImagem());
+						promocao.setDescricao(promocaoDTO.getDescricao());
+						
+						service.insert(promocao);
+						return ResponseEntity.ok().build();
+					}
+					
+					
+					
+					@GetMapping("/delete/{id}")
+					public ResponseEntity<?> deletarPromocao(@PathVariable("id") Long id){
+						service.delete(id);
+						return ResponseEntity.ok().build();
+					}
+					
+				}
+
+			PromocaoDTO:
+
+				// Classe usada para atualizar uma Promocao
+
+				public class PromocaoDTO {
+		
+					@NotNull
+					private Long id;
+					
+					@NotNull
+					@NotBlank(message = "Um título é requerido.")
+					private String titulo;
+					
+					private String descricao;
+					
+					@NotNull
+					@NotBlank
+					private String linkImagem;
+					
+					@NotNull(message = "Uma preco é requerido.")
+					@NumberFormat(style = Style.CURRENCY, pattern = "#,##0.00")
+					private BigDecimal preco;
+					
+					@NotNull(message = "Uma categoria é requirida.")
+					private Categoria categoria;
+
+				}
+
+			promo-datatables.js  JavaScript:
+
+				$(document).ready(function(){
+					moment.locale('pt-br');
+					var table = $("#table-server").DataTable({
+						//Habilitar trabalhar no lado do servidor
+						serverSide: true,
+						//Loading
+						processing: true,
+						//Comportamento Responsivo
+						responsive: true,
+						lengthMenu: [ 10, 15, 20, 25 ],
+						ajax: {
+							// Starta a data table
+							url: "/promocao/datatables/server",
+							data: "data"	// Resposta recebida com os dados das promoções
+						},
+						columns:[
+							{data : 'id'},
+							{data : 'titulo'},
+							{data : 'site'},
+							{data : 'linkPromocao'},
+							{data : 'descricao'},
+							{data : 'linkImagem'},
+							{data : 'preco', render: $.fn.dataTable.render.number('.', ',', 2, 'R$')},	// Formato que o preco será mostrado
+							{data : 'likes'},
+							{data : 'dtCadastro', render: //Formato que a data será mostrado
+								function(dtCadastro){
+									return moment ( dtCadastro ).format('LLL');
+								}
+							},
+							{data : 'categoria.titulo'}
+						],
+						dom: 'Bfrtip',
+						buttons: [
+						// Adicionando botões na página
+							{
+								text:'Editar',
+								attr: {
+									id: 'btn-editar',
+									type: 'button'
+								},
+								enabled: false
+							},
+							{
+								text:'Excluir',
+								attr: {
+									id: 'btn-excluir',
+									type: 'button'
+								},
+								enabled: false
+							}
+						]
+					});
+					
+					//Habilitar e desabilitar botoes ao clicar nas ordenações
+					
+					$("#table-server thead").on('click', 'tr', function(){
+						table.buttons().disable();
+					});
+					
+					//Habilitar e desabilitar linha
+					
+					$("#table-server tbody").on('click', 'tr', function(){
+					// Se a linha clicada ja está selecionada, descelecione ela
+						if($(this).hasClass('selected')){
+							$(this).removeClass('selected');
+					// Desative os botões
+							table.buttons().disable();
+						}else{
+
+						// Caso contrário, se tiver alguma linha já selecionada, desmarque, e marque a linha selecionada
+
+							$('tr.selected').removeClass('selected');
+							$(this).addClass('selected');
+					// Ative os botões
+							table.buttons().enable();
+						}
+					});
+					
+				
+					$("#btn-excluir").on('click', function(){
+						// Verifica se tem uma linha selecionada, caso tenha, aciona o modal de exclusão
+						if(isSelectRow()){
+							$("#modal-delete").modal('show');
+						}
+						
+					});
+					
+					// Retorna o id da promoção referente a linha selecionada
+					function getPromoSelectedId(){
+						return table.row(table.$('tr.selected')).data().id;
+					}
+					// Verifica se tem uma linha selecionada
+					function isSelectRow(){
+						return table.row(table.$('tr.selected')).data()  !== undefined;
+					}
+					
+					// Botão para confimar a exclusão
+					$("#btn-del-modal").on('click', function(){
+						// Retorna o id da linha selecionada
+						var id  = getPromoSelectedId();
+						
+						$.ajax({
+							method:"GET",
+
+							url: "/promocao/delete/" + id,
+							success: function(){
+								$("#modal-delete").modal('hide');
+								table.ajax.reload();
+							},
+							error: function(){
+								alert("Ops ... Ocorreu um erro, tente mais tarde.");
+							}
+						});
+					
+					});
+					
+				
+					// Clica no botão editar no página data-table html, essa função retornará os dados referentes á página aberta e colocará no modal
+					$("#btn-editar").on('click', function(){
+						
+						// Verifica se tem uma linha selecionada, caso tenha, aciona o modal de edição
+						if( isSelectRow() ){
+
+							// Mostra o modal(edição)
+							$("#modal-form").modal('show');
+
+							// Id da promoção presente na linha selecionada
+							var id = getPromoSelectedId();
+							$.ajax({
+								method: "GET",
+								url: "/promocao/edit/" + id,
+								beforeSend: function(){
+									//removendo as mensagens
+									$("span").closest('.error-span').remove();
+									
+									//remover as bordas vermelhas
+									$(".is-invalid").removeClass("is-invalid");
+								},
+								success: function( data ){
+									$("#edt_id").val(data.id);
+									$("#edt_site").text(data.site);
+									$("#edt_titulo").val(data.titulo);
+									$("#edt_descricao").val(data.descricao);
+									$("#edt_preco").val(data.preco.toLocaleString('pt-BR', {
+										minimumFractionDigits: 2,
+										maximumFractionDigits: 2
+									}));
+									$("#edt_categoria").val(data.categoria.id);
+									$("#edt_linkImagem").val(data.linkImagem);
+									$("#edt_imagem").attr('src', data.linkImagem);
+								}
+							});
+							
+						}
+						
+					});
+					//editar promocao
+					$("#btn-edit-modal").on("click", function(){
+						var promo = {};
+						// Enviando um PromocaoDTO
+						promo.descricao = $("#edt_descricao").val();
+						promo.preco = $("#edt_preco").val();
+						promo.titulo = $("#edt_titulo").val();
+						promo.categoria = $("#edt_categoria").val();
+						promo.linkImagem = $("#edt_linkImagem").val();
+						promo.id = $("#edt_id").val();
+						
+						$.ajax({
+							method: "POST",
+							url: "/promocao/edit",
+							data: promo,
+							beforeSend: function(){
+								
+								//removendo as mensagens
+								$("span").closest('.error-span').remove();
+								
+								//remover as bordas vermelhas
+								$(".is-invalid").removeClass("is-invalid");
+								
+							},
+							success: function(){
+								$("#modal-form").modal("hide");
+								table.ajax.reload();
+							},
+							statusCode:{
+								422: function(xhr){
+									console.log('status error:', xhr.status);
+									var errors = $.parseJSON(xhr.responseText);
+									$.each(errors, function(key, val){
+										$("#edt_" + key).addClass("is-invalid");
+										$("#error-" + key).
+										addClass("invalid-feedback").
+										append("<span class='error-span'>" + val + "</span>");
+									});
+									
+								}
+							}
+						
+						});
+						
+					});
+					
+					//alterar a imagem no componente <img> do modal caso o link da mensagem seja alterado
+					$("#edt_linkImagem").on("change", function(){
+						var link = $(this).val();
+						$("#edt_imagem").attr("src", link);
+					});
+					
+				});
+
+			Página promo-datatables Html:
+
+				<!DOCTYPE html>
+				<html layout:decorate="~{layout}">
+				<head>
+				    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+				</head>
+				<body>
+
+					<div class="corpo" layout:fragment="corpo">
+					
+						<table id="table-server" class="display nowrap" style="width:100%">
+						  <thead class="thead-dark">
+						    <tr>
+						      <th scope="col">#</th>
+						      <th scope="col">Titulo</th>
+						      <th scope="col">Site</th>
+						      <th scope="col">Link Promoção</th>
+						      <th scope="col">Descrição</th>
+						      <th scope="col">Link Imagem</th>
+						      <th scope="col">Preço</th>
+						      <th scope="col">Likes</th>
+						      <th scope="col">Data de Cadastro</th>
+						      <th scope="col">Categoria</th>
+						    </tr>
+						  </thead>
+						</table>
+				        
+				        // Modals de edição e exclusão
+
+				        <div th:replace="promo-datatables-modal :: modal-form"></div>
+				        <div th:replace="promo-datatables-modal-del :: modal-delete"></div>
+				        
+					</div>
+
+					<script th:src="@{/js/promo-datatables.js}" th:fragment="js"></script>
+				</body>
+				</html>
+
+			Página promo-datatables-modal Html:
+
+				<!DOCTYPE html>
+				<html lang="pt" xmlns="http://www.w3.org/1999/xhtml"
+					xmlns:th="http://www.thymeleaf.org"
+					xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+				<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+				</head>
+				<body>
+
+					<!-- Modal -->
+					<div class="modal fade" id="modal-form" tabindex="-1" role="dialog"
+						aria-labelledby="exampleModalCenterTitle" aria-hidden="true" th:fragment="modal-form">
+						<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="exampleModalLongTitle">Editar Promoção</h5>
+									<button type="button" class="close" data-dismiss="modal"
+										aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+								<div class="modal-body">
+									<form id="form-edit-promo" action="#">					
+										<div class="form-group">
+											<label for="edt_titulo">Título da Oferta</label> <input
+												type="text" class="form-control" id="edt_titulo" name="titulo" />
+											<div id="error-titulo"></div>
+										</div>
+										<div class="form-row">
+											<div class="col-sm-7">
+												<div class="form-group">
+													<label for="edt_preco">Preço da Oferta</label> <input
+														type="text" class="form-control" id="edt_preco" name="preco"
+														placeholder="ex.: 59,99" data-mask="#.##0,00" 
+														data-mask-reverse="true" />
+													<div id="error-preco" class=""></div>
+												</div>
+												<div class="form-group">
+													<label for="edt_categoria">Categoria do Produto</label> <select
+														id="edt_categoria" name="categoria" class="form-control">
+														<option value="">Selecione</option>
+														<option th:each="c : ${categorias}" th:text="${c.titulo}"
+															th:value="${c.id}">...</option>
+													</select>
+													<div id="error-categoria"></div>
+												</div>
+												<div class="form-group">
+													<label for="edt_descricao">Descrição da Oferta</label>
+													<textarea class="form-control" id="edt_descricao"
+														name="descricao"
+														placeholder="Algo sobre a promoção ou produto..."></textarea>
+												</div>
+												<div class="form-group">
+													<label for="edt_linkImagem">Nova Imagem</label> <input
+														type="url" class="form-control" id="edt_linkImagem" name="linkImagem" placeholder="http://..."/>
+													<div id="error-linkImagem" class=""></div>
+												</div>
+											</div>
+											<div class=" col-sm-5 ">
+												<div class="card" style="width: 18rem;">
+													<div class="card-header">Imagem</div>
+													<span class="mx-auto" id="loader-img"></span> <img
+														id="edt_imagem" class="card-img-top"
+														th:src="@{/images/promo-dark.png}" width="308px" />
+													<div class="card-body bg-light">
+											        	<h5 id="edt_site" class="card-title"></h5>
+											        </div>
+												</div>
+											</div>
+										</div>
+										<input type="hidden" class="form-control" id="edt_id" name="id" /> 
+									</form>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary"	data-dismiss="modal">Cancelar</button>
+									<button id="btn-edit-modal" class="btn btn-primary">Confirmar</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</body>
+				</html>
+
+			Página promo-datatables-modal-del Html:
+
+				<!DOCTYPE html>
+				<html lang="pt" xmlns="http://www.w3.org/1999/xhtml"
+					xmlns:th="http://www.thymeleaf.org"
+					xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+				<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+				</head>
+				<body>
+
+					<!-- Modal -->
+					<div class="modal fade" id="modal-delete" tabindex="-1" role="dialog"
+						aria-labelledby="exampleModalCenterTitle" aria-hidden="true" th:fragment="modal-delete">
+						<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="exampleModalLongTitle">Excluir Promoção</h5>
+									<button type="button" class="close" data-dismiss="modal"
+										aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+								<div class="modal-body">
+									<p>Deseja realmente remover esta promoção? </p>
+									<p>Clique Confirmar para sim e Cancelar para não<p>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary"	data-dismiss="modal">Cancelar</button>
+									<button id="btn-del-modal" class="btn btn-danger">Confirmar</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</body>
+				</html>
+
+		6 - Ajax Reverso(DWR)
+
+			Main:
+
+				// Buscar o arquivo de configuração
+				@ImportResource(locations = "classpath:dwr-spring.xml")
+				@SpringBootApplication
+				public class CursoUdemyAjaxApplication{
+					
+					@Autowired
+					SocialMetaTagService service;
+					
+					public static void main(String[] args) {
+						TimeZone.setDefault(TimeZone.getTimeZone("GMT-3"));
+						SpringApplication.run(CursoUdemyAjaxApplication.class, args);
+					}
+				
+				//Configuração do AjaxReverse
+					@Bean
+					public ServletRegistrationBean<DwrSpringServlet> dwrSpringServlet(){
+						DwrSpringServlet dwrServlet = new DwrSpringServlet();
+						ServletRegistrationBean<DwrSpringServlet> registrationBean = 
+								new ServletRegistrationBean<>(dwrServlet, "/dwr/*");
+						
+						registrationBean.addInitParameter("debug", "true");
+						registrationBean.addInitParameter("activeReverseAjaxEnabled", "true");	
+						return registrationBean;
+					}
+					
+				//	@Override
+				//	public void run(String... args) throws Exception {
+				//		SocialMetaTag tag =  service.getSocialMetaTagByUrl("https://www.udemy.com/course/spring-boot-mvc-com-thymeleaf/");
+				//		System.out.println(tag.toString());
+				//		
+				//		tag = service.getSocialMetaTagByUrl("https://www.pichau.com.br/processador-amd-ryzen-3-3200g-quad-core-3-6ghz-4ghz-turbo-6mb-cache-am4-yd3200c5fhbox");
+				//		System.out.println(tag.toString());
+				//	}
+				}
+
+			DWRAlertaPromocoes:
+
+				@Component
+				@RemoteProxy
+				public class DWRAlertaPromocoes {
+
+					@Autowired
+					private PromocaoRepository repository;
+					
+					private Timer timer;
+
+					private LocalDateTime getDtCadastroByUltimaPromocao() {
+						PageRequest pageRequest = PageRequest.of(0,1,Direction.DESC, "dt_cadastro");
+						return repository.findUltimaDataDePromocao(pageRequest).getContent().get(0).toLocalDateTime();
+					}
+					
+					@RemoteMethod
+					public synchronized void init() {
+						
+						System.out.println("DWR está ativado!");
+						
+						LocalDateTime lastDate =  getDtCadastroByUltimaPromocao();
+						System.out.println(lastDate);
+						
+						WebContext context = WebContextFactory.get();
+						
+						timer = new Timer();
+
+						// Validação vai ocorrer a cada 60 segundos
+						timer.schedule(new AlertTask(context, lastDate), 10000, 60000);
+						
+					}
+					
+					class AlertTask extends TimerTask{
+						
+						private LocalDateTime lastDate;
+						private WebContext context;
+						private Long count;
+						
+						public AlertTask(WebContext context, LocalDateTime lastDate) {
+							super();
+							this.lastDate = lastDate;
+							this.context = context;
+						}
+
+						@Override
+						public void run() {
+							
+							String session = context.getScriptSession().getId();
+							
+							Browser.withSession(context, session, new Runnable(){
+
+								@Override
+								public void run() {
+							
+								// Parte a ser analisada
+
+								//Recebe quantidade de novas promoções cadastradas após a ultima cadastrada, essa verificação ocorre a cada 1 minuto, onde
+								// o valor da data da "ultima promoção" é atualizada caso tenha ocorrido novas promoções
+									// TODO Auto-generated method stub
+									Map<String, Object> map = repository.TotalAndUltimaPromocaoByDtCadastro(lastDate);
+									System.out.println(map);
+
+									// Quantidade de novas promoções
+									
+									count = ( (BigInteger) map.get("count") ).longValue();
+									
+									// Data da ultima promoção cadastrada
+
+									lastDate = (map.get("lastDate") == null) ? lastDate : ((Timestamp) map.get("lastDate")).toLocalDateTime();
+									
+									Calendar time = Calendar.getInstance();
+									time.setTimeInMillis(context.getScriptSession().getLastAccessedTime());
+									
+									System.out.println("count: " + count
+													   +", lastDate: " + lastDate
+													   +"<" + session + "> " + " <" + time.getTime() + "");
+									
+									if(count > 0) {
+										ScriptSessions.addFunctionCall("showButton", count);
+									}
+								}
+								
+							});
+
+						}
+						
+					}
+					
+				}
+
+			PromocaoRepository:
+
+				@Query(value = "select count(p.id) as count, max(p.dt_cadastro) as lastDate "
+						+ "from Promocao p where p.dt_cadastro > ?1", nativeQuery = true)
+				Map<String, Object> TotalAndUltimaPromocaoByDtCadastro(LocalDateTime data);
+				
+				@Query(value = "SELECT P.DT_CADASTRO FROM PROMOCAO P", nativeQuery = true)
+				Page<Timestamp> findUltimaDataDePromocao(Pageable pageable);
+
+			dwr-spring.xml:
+
+				<?xml version="1.0" encoding="UTF-8"?>
+
+				<beans xsi:schemaLocation="http://www.springframework.org/schema/beans 
+				http://www.springframework.org/schema/beans/spring-beans.xsd 
+				http://www.directwebremoting.org/schema/spring-dwr 
+				http://www.directwebremoting.org/schema/spring-dwr-3.0.xsd" 
+
+						xmlns:dwr="http://www.directwebremoting.org/schema/spring-dwr" 
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+						xmlns="http://www.springframework.org/schema/beans">
+
+				<dwr:configuration/>
+
+				<dwr:annotation-scan base-package="com.allissonjardel.projeto.dwr"/>
+
+				<dwr:annotation-config/>
+
+				</beans>
+
+			promo-list.js:
+
+				// Ajax Reverse
+				var totalOfertas = 0;
+
+				$(document)
+
+				function init(){
+					console.log("dwr init ...");
+					
+					//Configuração padrão
+					dwr.engine.setActiveReverseAjax(true);
+
+					// Seta um erro, caso ocorra, e a "function error()" detecta e mostra no log.
+					dwr.engine.setErrorHandler(error);
+					
+					DWRAlertaPromocoes.init();
+				}
+
+				function error(exception){
+					console.log("dwr error: ", exception);
+				}
+
+				function showButton(count){
+					// Ativa o botão e incrementa o número de  ofertas, a function showButton() é chamada pelo função DWRAlertaPromocoes quando uma nova promoção é 
+					// detectada.
+					totalOfertas = totalOfertas + count;
+					$("#btn-alert").show(function(){
+						$(this)
+							.attr("style", "display: block;")
+							.text("Veja " + totalOfertas + " novas(s) oferta(s) !!!")
+					});
+					
+				}
+
+				// Retorna uma lista com as últimas 8 promoções adicionadas
+				// Funcionamento similar à lista normal retornada, e os efeitos do scroll agem da mesma forma.
+				$("#btn-alert").on("click", function(){
+					$.ajax({
+						method: "GET",
+						url: "/promocao/list/ajax",
+						data: {
+							page: 0
+						},
+						beforeSend: function(){
+							pageNumber = 0;
+							totalOfertas = 0;
+							$("#fim-btn").hide();
+							$("#loader-img").addClass("loader");
+							$("#btn-alert").attr("style", "display: none;");
+							$(".row").fadeOut(400, function(){
+								$(this).empty();
+							});
+						},
+						success: function(response){
+							$("#loader-img").removeClass("loader");
+							$(".row").fadeIn(250, function(){
+								$(this).append(response);
+							});
+						}, 
+						error: function(xhr){
+							alert("Ops, algo deu errado: " + xhr.status + ", " + xhr.statusText);
+						}
+					});
+				});
+
+			Página promo-list HTML:
+
+				<!DOCTYPE html>
+				<html layout:decorate="~{layout}">
+				<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+				</head>
+				<body>
+
+					<div class="corpo" layout:fragment="corpo">
+						<main role="main">
+
+						<section class="jumbotron text-center pt-3 pb-3">
+							<div class="container">
+								<h1 class="jumbotron-heading">Promo Spring - Ofertas mais recentes</h1>
+								<p class="lead text-muted">Aproveite a lista de ofertas e pague	menos por seus desejos.</p>
+
+								<form id="form-autocomplete">
+									<div class="form-row">
+										<div class="form-group col-md-10">
+											<input id="autocomplete-input" name="site" type="text" class="form-control" placeholder="Ex.: udemy">
+										</div>
+										<div class="form-group col-md-2">
+											<button id="autocomplete-submit" type="button" class="btn btn-primary">Confirmar</button>
+										</div>
+									</div>
+								</form>
+
+							</div>
+						</section>
+
+						<div class="album py-5 bg-light">
+							<div class="container">
+
+								// Vai ser adicionado o alerta de novas promoções adicionadas
+
+								<div class="form-group">
+									<button id="btn-alert"
+										    class="btn btn-warning btn-lg btn-block hidden"	style="display: none;"></button>
+								</div>
+
+								<div class="row" th:insert="promo-card">
+									
+								</div>
+
+								<div id="loading">
+									<div id="loader-img" class="mx-auto loader"></div>
+									<a id="fim-btn" type='button' href='#' class='btn btn-info mx-auto'>Fim! Voltar ao topo</a>
+								</div>
+							</div>
+						</div>
+						</main>
+					</div>
+
+					<script th:src="@{/js/promo-list.js}" th:fragment="js"></script>
+				</body>
+				</html>
+

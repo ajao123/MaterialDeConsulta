@@ -1,0 +1,2043 @@
+
+1 - DemoSecurityApplication:
+
+		@SpringBootApplication
+		public class DemoSecurityApplication{
+
+			public static void main(String[] args) {
+				
+				//System.out.println(new BCryptPasswordEncoder().encode("123456"));
+			
+				
+				TimeZone.setDefault(TimeZone.getTimeZone("GMT-3"));
+				SpringApplication.run(DemoSecurityApplication.class, args);
+			}
+
+		//	@Autowired
+		//	JavaMailSender sender;
+		//	
+		//	@Autowired
+		//	EmailServiceImpl service;
+		//	
+		//	@Override
+		//	public void run(String... args) throws Exception {
+		//		
+		//		service.enviarPedidoDeConfirmacaoDeCadastro("allissonjardelec@gmail.com", "3453dsa");
+		//		
+		//		SimpleMailMessage simple = new SimpleMailMessage();
+		//		simple.setTo("allissonjardelec@gmail.com");
+		//		simple.setText("Teste numero 1");
+		//		simple.setSubject("teste 1");
+		//		sender.send(simple);
+		//	}
+		}
+
+2 - Classes:
+
+		AbstractEntity:
+
+			@SuppressWarnings("serial")
+			@MappedSuperclass
+			public abstract class AbstractEntity implements Serializable  {
+
+				@Id 
+				@GeneratedValue(strategy = GenerationType.IDENTITY)
+				private Long id;
+				
+				public AbstractEntity() {
+					super();
+				}
+
+				public Long getId() {
+					return id;
+				}
+
+				public void setId(Long id) {
+					this.id = id;
+				}
+				
+				public boolean hasNotId() {
+					return id == null;
+				}
+
+				public boolean hasId() {
+					return id != null;
+				}
+				
+				@Override
+				public int hashCode() {
+					final int prime = 31;
+					int result = 1;
+					result = prime * result + ((id == null) ? 0 : id.hashCode());
+					return result;
+				}
+
+				@Override
+				public boolean equals(Object obj) {
+					if (this == obj)
+						return true;
+					if (obj == null)
+						return false;
+					if (getClass() != obj.getClass())
+						return false;
+					AbstractEntity other = (AbstractEntity) obj;
+					if (id == null) {
+						if (other.id != null)
+							return false;
+					} else if (!id.equals(other.id))
+						return false;
+					return true;
+				}
+
+				@Override
+				public String toString() {
+					return String.format("Entidade %s id: %s", this.getClass().getName(), getId());
+				}	
+			}
+
+		Agendamento:
+
+			@SuppressWarnings("serial")
+			@Entity
+			@Table(name = "agendamentos") 
+			public class Agendamento extends AbstractEntity {
+				
+				@ManyToOne
+				@JoinColumn(name="id_especialidade")
+				private Especialidade especialidade;
+				
+				@ManyToOne
+				@JoinColumn(name="id_medico")
+				private Medico medico;
+				
+				@ManyToOne
+				@JoinColumn(name="id_paciente")
+				private Paciente paciente;
+				
+				@ManyToOne
+				@JoinColumn(name="id_horario")
+				private Horario horario; 
+
+				@Column(name="data_consulta")
+				@DateTimeFormat(iso = ISO.DATE)
+				private LocalDate dataConsulta;
+				
+				public Especialidade getEspecialidade() {
+					return especialidade;
+				}
+
+				public void setEspecialidade(Especialidade especialidade) {
+					this.especialidade = especialidade;
+				}
+
+				public Medico getMedico() {
+					return medico;
+				}
+
+				public void setMedico(Medico medico) {
+					this.medico = medico;
+				}
+
+				public Paciente getPaciente() {
+					return paciente;
+				}
+
+				public void setPaciente(Paciente paciente) {
+					this.paciente = paciente;
+				}
+
+				public LocalDate getDataConsulta() {
+					return dataConsulta;
+				}
+
+				public void setDataConsulta(LocalDate dataConsulta) {
+					this.dataConsulta = dataConsulta;
+				}
+
+				public Horario getHorario() {
+					return horario;
+				}
+
+				public void setHorario(Horario horario) {
+					this.horario = horario;
+				}
+			}
+
+		Especialidade:
+
+			@SuppressWarnings("serial")
+			@Entity
+			@Table(name = "especialidades", indexes = {@Index(name = "idx_especialidade_titulo", columnList = "titulo")})
+			public class Especialidade extends AbstractEntity {
+				
+				@Column(name = "titulo", unique = true, nullable = false)
+				private String titulo;
+				
+				@Column(name = "descricao", columnDefinition = "TEXT")
+				private String descricao;
+				
+				@ManyToMany
+				@JoinTable(
+						name = "medicos_tem_especialidades",
+						joinColumns = @JoinColumn(name = "id_especialidade", referencedColumnName = "id"),
+						inverseJoinColumns = @JoinColumn(name = "id_medico", referencedColumnName = "id")
+			    )
+				private List<Medico> medicos;	
+
+				public String getTitulo() {
+					return titulo;
+				}
+
+				public void setTitulo(String titulo) {
+					this.titulo = titulo;
+				}	
+
+				public String getDescricao() {
+					return descricao;
+				}
+
+				public void setDescricao(String descricao) {
+					this.descricao = descricao;
+				}
+
+				public List<Medico> getMedicos() {
+					return medicos;
+				}
+
+				public void setMedico(List<Medico> medicos) {
+					this.medicos = medicos;
+				}
+			}
+
+		Horario:
+
+			@SuppressWarnings("serial")
+			@Entity
+			public class Horario extends AbstractEntity {
+				
+				@Column(name = "hora_minuto", unique = true, nullable = false)
+				private LocalTime horaMinuto;
+
+				public LocalTime getHoraMinuto() {
+					return horaMinuto;
+				}
+
+				public void setHoraMinuto(LocalTime horaMinuto) {
+					this.horaMinuto = horaMinuto;
+				}
+			}
+
+		Medico:
+
+			@SuppressWarnings("serial")
+			@Entity
+			@Table(name = "medicos")
+			public class Medico extends AbstractEntity {
+
+				@Column(name = "nome", unique = true, nullable = false)
+				private String nome;
+				
+				@Column(name = "crm", unique = true, nullable = false)
+				private Integer crm;
+				
+				@DateTimeFormat(iso = ISO.DATE)
+				@Column(name = "data_inscricao", nullable = false)
+				private LocalDate dtInscricao;
+				
+				// evita recursividade quando o json de resposta for criado para a datatables.
+				@JsonIgnore
+				@ManyToMany(cascade = CascadeType.ALL)
+				@JoinTable(
+						name = "medicos_tem_especialidades",
+						joinColumns = @JoinColumn(name = "id_medico", referencedColumnName = "id"),
+						inverseJoinColumns = @JoinColumn(name = "id_especialidade", referencedColumnName = "id")
+			    )
+				private Set<Especialidade> especialidades;
+				
+				// evita recursividade quando o json de resposta for criado para a datatables.
+				@JsonIgnore
+				@OneToMany(mappedBy = "medico")
+				private List<Agendamento> agendamentos;
+				
+				@OneToOne(cascade = CascadeType.REMOVE)
+				@JoinColumn(name = "id_usuario")
+				private Usuario usuario;
+				
+				public Medico() {
+					super();
+				}
+
+				public Medico(Long id) {
+					super.setId(id);
+				}
+
+				public Medico(Usuario usuario) {
+					this.usuario = usuario;
+				}
+
+				public String getNome() {
+					return nome;
+				}
+
+				public void setNome(String nome) {
+					this.nome = nome;
+				}
+
+				public Integer getCrm() {
+					return crm;
+				}
+
+				public void setCrm(Integer crm) {
+					this.crm = crm;
+				}
+
+				public LocalDate getDtInscricao() {
+					return dtInscricao;
+				}
+
+				public void setDtInscricao(LocalDate dtInscricao) {
+					this.dtInscricao = dtInscricao;
+				}
+
+				public Set<Especialidade> getEspecialidades() {
+					return especialidades;
+				}
+
+				public void setEspecialidades(Set<Especialidade> especialidades) {
+					this.especialidades = especialidades;
+				}
+
+				public List<Agendamento> getAgendamentos() {
+					return agendamentos;
+				}
+
+				public void setAgendamentos(List<Agendamento> agendamentos) {
+					this.agendamentos = agendamentos;
+				}	
+
+				public Usuario getUsuario() {
+					return usuario;
+				}
+
+				public void setUsuario(Usuario usuario) {
+					this.usuario = usuario;
+				}
+			}
+
+		Paciente:
+
+			@SuppressWarnings("serial")
+			@Entity
+			@Table(name = "pacientes")
+			public class Paciente extends AbstractEntity {
+
+				@Column(name = "nome", unique = true, nullable = false)
+				private String nome;
+
+				@Column(name = "data_nascimento", nullable = false)
+				@DateTimeFormat(iso = ISO.DATE)
+				private LocalDate dtNascimento;
+
+				@JsonIgnore
+				@OneToMany(mappedBy = "paciente")
+				private List<Agendamento> agendamentos;
+				
+				@OneToOne(cascade = CascadeType.ALL)
+				@JoinColumn(name = "id_usuario")
+				private Usuario usuario;
+
+				public String getNome() {
+					return nome;
+				}
+
+				public void setNome(String nome) {
+					this.nome = nome;
+				}
+
+				public LocalDate getDtNascimento() {
+					return dtNascimento;
+				}
+
+				public void setDtNascimento(LocalDate dtNascimento) {
+					this.dtNascimento = dtNascimento;
+				}
+
+				public List<Agendamento> getAgendamentos() {
+					return agendamentos;
+				}
+
+				public void setAgendamentos(List<Agendamento> agendamentos) {
+					this.agendamentos = agendamentos;
+				}
+
+				public Usuario getUsuario() {
+					return usuario;
+				}
+
+				public void setUsuario(Usuario usuario) {
+					this.usuario = usuario;
+				}
+
+			}
+
+		Perfil:
+
+			@SuppressWarnings("serial")
+			@Entity
+			@Table(name = "perfis")
+			public class Perfil extends AbstractEntity {
+				
+				@Column(name = "descricao", nullable = false, unique = true)
+				private String desc;
+				
+				public Perfil() {
+					super();
+				}
+
+				// Nesse sistema, consta apenas 3 perfis já presentes no banco: 1 - ADMIN, 2 - MEDICO, 3 - PACIENTE
+
+				public Perfil(Long id) {
+					super.setId(id);
+				}
+
+				public String getDesc() {
+					return desc;
+				}
+
+				public void setDesc(String desc) {
+					this.desc = desc;
+				}
+			}
+
+		Enum - PerfilTipo:
+
+			public enum PerfilTipo {
+				ADMIN(1, "ADMIN"), MEDICO(2, "MEDICO"), PACIENTE(3, "PACIENTE");
+				
+				private long cod;
+				private String desc;
+
+				private PerfilTipo(long cod, String desc) {
+					this.cod = cod;
+					this.desc = desc;
+				}
+
+				public long getCod() {
+					return cod;
+				}
+
+				public String getDesc() {
+					return desc;
+				}
+			}
+
+		Usuario: 
+
+			@SuppressWarnings("serial")
+			@Entity
+			@Table(name = "usuarios", indexes = {@Index(name = "idx_usuario_email", columnList = "email")})
+			public class Usuario extends AbstractEntity {	
+				
+				@Column(name = "email", unique = true, nullable = false)
+				private String email;
+				
+				@JsonIgnore
+				@Column(name = "senha", nullable = false)
+				private String senha;
+				
+				@ManyToMany
+				@JoinTable(
+					name = "usuarios_tem_perfis", 
+			        joinColumns = { @JoinColumn(name = "usuario_id", referencedColumnName = "id") }, 
+			        inverseJoinColumns = { @JoinColumn(name = "perfil_id", referencedColumnName = "id") }
+				)
+				private List<Perfil> perfis;
+				
+				@Column(name = "ativo", nullable = false, columnDefinition = "TINYINT(1)")
+				private boolean ativo;
+				
+				@Column(name = "codigo_verificador", length = 6)
+				private String codigoVerificador;
+				
+				public Usuario() {
+					super();
+				}
+
+				public Usuario(Long id) {
+					super.setId(id);
+				}
+
+				// adiciona perfis a lista
+				public void addPerfil(PerfilTipo tipo) {
+					if (this.perfis == null) {
+						this.perfis = new ArrayList<>();
+					}
+					this.perfis.add(new Perfil(tipo.getCod()));
+				}
+
+				public Usuario(String email) {
+					this.email = email;
+				}
+				
+				public String getEmail() {
+					return email;
+				}
+
+				public void setEmail(String email) {
+					this.email = email;
+				}
+
+				public String getSenha() {
+					return senha;
+				}
+
+				public void setSenha(String senha) {
+					this.senha = senha;
+				}
+
+				public List<Perfil> getPerfis() {
+					return perfis;
+				}
+
+				public void setPerfis(List<Perfil> perfis) {
+					this.perfis = perfis;
+				}
+
+				public boolean isAtivo() {
+					return ativo;
+				}
+
+				public void setAtivo(boolean ativo) {
+					this.ativo = ativo;
+				}	
+				
+				public String getCodigoVerificador() {
+					return codigoVerificador;
+				}
+
+				public void setCodigoVerificador(String codigoVerificador) {
+					this.codigoVerificador = codigoVerificador;
+				}
+
+			}
+
+3 - Configurações do Spring Security
+
+	Config:
+
+		// Permite que sejam utilizadas tags para dar autorização, Ex: @PreAuthorize("hasAnyAuthority('PACIENTE', 'MEDICO')")
+		@EnableGlobalMethodSecurity(prePostEnabled = true)	
+
+		// Habilitar configuração de segurança
+		@EnableWebSecurity
+		public class SecurityConfig extends WebSecurityConfigurerAdapter{
+
+			private static final String ADMIN = PerfilTipo.ADMIN.getDesc();			// ADMIN
+			private static final String MEDICO = PerfilTipo.MEDICO.getDesc();		// MEDICO
+			private static final String PACIENTE = PerfilTipo.PACIENTE.getDesc();	// PACIENTE
+			
+			// Serviço de configuração do usuário
+
+			@Autowired
+			private UsuarioServiceImpl service;
+			
+			@Override
+			protected void configure(HttpSecurity http) throws Exception {
+				
+				http.authorizeRequests()
+				
+
+
+				//acessos publicos, tantos nas páginas html, css, e js, quanto os RequestsMapping dos controllers
+				//  /** = tudo que venha após
+
+				.antMatchers("/webjars/**", "/css/**", "/image/**", "/js/**").permitAll()
+				.antMatchers("/", "/home").permitAll()
+				.antMatchers("/u/novo/cadastro", "/u/cadastro/realizado", "/u/cadastro/paciente/salvar").permitAll()
+				.antMatchers("/u/confirmacao/cadastro").permitAll()
+				.antMatchers("/u/p/**").permitAll()
+				
+				// acessos privados admin, apenas Perfis de Admin tem acesso
+
+				.antMatchers("/u/editar/senha", "/u/confirmar/senha").hasAnyAuthority(MEDICO, PACIENTE)
+				.antMatchers("/u/**").hasAuthority(ADMIN)
+				
+				// acessos privados medicos, apenas Perfis de Medico tem acesso
+				.antMatchers("/medicos/especialidade/titulo/*").hasAnyAuthority(PACIENTE, MEDICO)
+				.antMatchers("/medicos/dados", "/medicos/salvar", "/medicos/editar", "/especialidades/titulo").hasAnyAuthority(MEDICO, ADMIN)
+				.antMatchers("/medicos/**").hasAuthority(MEDICO)
+				
+				// acessos privados pacientes, apenas Perfis de Paciente tem acesso
+				.antMatchers("/pacientes/**").hasAuthority(PACIENTE)
+				
+				// acessos privados especialidades
+				.antMatchers("/especialidades/datatables/server/medico/*").hasAnyAuthority(MEDICO, ADMIN)
+				.antMatchers("/especialidades/titulo").hasAnyAuthority(MEDICO, ADMIN, PACIENTE)
+				.antMatchers("/especialidades/**").hasAuthority(ADMIN)
+				
+				// É utilizado para autenticar alguns componentes das páginas html
+
+				.anyRequest().authenticated()
+
+				.and()
+					.formLogin()
+					.loginPage("/login")			// Padrão do login será o /login
+					.defaultSuccessUrl("/", true)	// Se o login tiver sucesso, o usuário será enviado para o caminho "/", que é a página home
+					.failureUrl("/login-error")		// Se o login não funcionar, o usuário será enviado para o caminho "/login-error"
+					.permitAll()
+				.and()
+					.logout()
+					.logoutSuccessUrl("/")			// Se o logou for realizado, o usuário será enviado para o caminho "/", que é a página home
+				.and()
+					.exceptionHandling()
+					.accessDeniedPage("/acesso-negado")	// Caso o usuário acesse uma página que não tem acesso, ele tem acesso negado
+				.and()
+					.rememberMe();						// Usuário permanece logado aos sistema, por um tempo padrão, 15 dias no Spring Security
+			}
+
+			// Configuração padrão
+
+			@Override
+			protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+				auth.userDetailsService(service).passwordEncoder(new BCryptPasswordEncoder());
+			}
+		}
+
+	UsuarioServiceImpl:
+
+		@Service
+		public class UsuarioServiceImpl implements UserDetailsService{
+			
+			@Autowired
+			UsuarioRepository repository;
+			
+			@Autowired
+			private Datatables datatables;
+			
+			@Autowired
+			private EmailServiceImpl emailService;
+			
+			public Usuario findByEmail(String email) {
+				return repository.findByEmail(email);
+			}
+
+			// Quando o usuário logar, seus dados são retornados da seguinte forma, retornando um User
+
+			@Override
+			@Transactional(readOnly=true)
+			public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+				Usuario usuario =  findByEmailAndAtivo(username)
+						.orElseThrow(() -> new UsernameNotFoundException("Usuario " + username + " não encontrado."));
+				return new User(
+					usuario.getEmail(),
+					usuario.getSenha(), 
+					AuthorityUtils.createAuthorityList(getAuthorities(usuario.getPerfis()))	
+				);
+			}
+			
+			private String[] getAuthorities(List<Perfil> perfis) {
+				String[] authorities = new String[perfis.size()];
+				for(int i = 0; i < perfis.size(); i++) {
+					authorities[i] = perfis.get(i).getDesc();
+				}
+				return authorities;
+			}
+			
+			@SuppressWarnings("unused")
+			private List<Usuario> getAll(){
+				return repository.findAll();
+			}
+			
+			@Transactional(readOnly=true)
+			public Map<String, Object> buscarUsuarios(HttpServletRequest request) {
+				datatables.setRequest(request);
+				datatables.setColunas(DatatablesColunas.USUARIOS);
+				
+				Page<Usuario> page = datatables.getSearch().isEmpty() 
+						?	repository.findAll(datatables.getPageable()) 
+						:	repository.findByEmailOrPerfil(datatables.getSearch(), datatables.getPageable());
+				
+				return datatables.getResponse(page);
+			}
+			
+			@Transactional(readOnly=true)
+			public Usuario findById(Long id){
+				return repository.findById(id).get();
+			}
+			
+			@Transactional(readOnly=false)
+			public void save(Usuario entity){
+				String crypt = new BCryptPasswordEncoder().encode(entity.getSenha());
+				entity.setSenha(crypt);
+				repository.save(entity);
+			}
+
+			public Usuario buscarPorIdEPerfis(Long id, Long[] perfisId) {
+				// TODO Auto-generated method stub
+				return repository.findByIdAndPerfis(id, perfisId)
+						.orElseThrow(() -> new UsernameNotFoundException("Usuário inexistente !"));
+					
+			}
+
+			public static boolean isSenhaCorreta(String senhaDigitada, String senhaArmazenada) {
+				
+				return new BCryptPasswordEncoder().matches(senhaDigitada, senhaArmazenada);
+			}
+
+			public void alterarSenha(Usuario usuario, String senha) {
+				usuario.setSenha(new BCryptPasswordEncoder().encode(senha));
+				repository.save(usuario);
+			}
+
+			public void salvarCadastroPaciente(Usuario usuario) throws MessagingException {
+				String crypt = new BCryptPasswordEncoder().encode(usuario.getSenha());
+				usuario.setSenha(crypt);
+				usuario.addPerfil(PerfilTipo.PACIENTE);
+				repository.save(usuario);
+				
+				emailDeConfirmacaoDeCadastro(usuario.getEmail());
+				
+			}
+			
+			public Optional<Usuario> findByEmailAndAtivo(String email){
+				return repository.findByEmailAndAtivo(email);
+			}
+			
+			public void emailDeConfirmacaoDeCadastro(String email) throws MessagingException {
+				String codigo = Base64Utils.encodeToString(email.getBytes());
+				emailService.enviarPedidoDeConfirmacaoDeCadastro(email, codigo);
+			}
+			
+			public void ativarCadastroPaciente(String codigo) {
+				String email = new String(Base64Utils.decodeFromString(codigo));
+				Usuario usuario = repository.findByEmail(email);
+				
+				if(usuario.hasNotId()) {
+					throw new AcessoNegadoException("Não foi possível ativar seu cadastro. Entre em "
+							+"contato com o suporte.");
+				}
+				usuario.setAtivo(true);
+				repository.save(usuario);
+			}
+			
+			@Transactional(readOnly=false)
+			public void pedidoRedefinicaoDeSenha(String email) throws MessagingException {
+				Usuario usuario = findByEmailAndAtivo(email).orElseThrow(() -> new UsernameNotFoundException("Usuario "
+						+ email + "não encontrado."));
+				String verificador = RandomStringUtils.randomAlphanumeric(6);
+				usuario.setCodigoVerificador(verificador);
+			//	repository.save(usuario);
+				emailService.enviarPedidoRedefinicaoSenha(email, verificador);
+			}
+			
+		}
+
+	UsuarioController:
+
+		@Controller
+		@RequestMapping("u")
+		public class UsuarioController {
+
+			@Autowired 
+			UsuarioServiceImpl service;
+			
+			@Autowired 
+			MedicoService medicoService;
+			
+			
+			// abrir cadastro de usuarios (medico/admin/paciente)
+			@GetMapping("/novo/cadastro/usuario")
+			public String abrirPorAdminParaAdminMedicoPaciente(Usuario usuario) {
+				return "usuario/cadastro";
+			}
+			
+			@GetMapping("/lista")
+			public String listarUsuarios() {
+				return "usuario/lista";
+			}
+			
+			@GetMapping("/datatables/server/usuarios")
+			public ResponseEntity<?> listUsuariosDataTables(HttpServletRequest request){
+				return ResponseEntity.ok(service.buscarUsuarios(request));
+			}
+			
+			@PostMapping("/cadastro/salvar")
+			public String salvarUsuarios(Usuario entity, RedirectAttributes attr) {
+				List<Perfil> perfis = entity.getPerfis();
+				if(perfis.size() > 2 || 
+						// Administrador e Paciente
+					   perfis.containsAll(Arrays.asList(new Perfil(1L), new Perfil(3L))) ||
+					    // Paciente e Médico
+					   perfis.containsAll(Arrays.asList(new Perfil(2L), new Perfil(3L)))
+				  ) {
+					
+					attr.addFlashAttribute("falha", "Paciente não pode ser Administrador e/ou Médico.");
+					attr.addFlashAttribute("usuario", entity);
+				}else {
+					
+					try {
+						service.save(entity);
+						attr.addFlashAttribute("sucesso", "Operação realizada com sucesso !!!");
+					}catch(DataIntegrityViolationException ex) {
+						attr.addFlashAttribute("falha","Cadastro não realizado, email já existente.");
+					}	
+				}
+				return "redirect:/u/novo/cadastro/usuario";
+			}
+			
+			// pre Edicao dos dados credenciais
+			@GetMapping("/editar/credenciais/usuario/{id}")
+			public ModelAndView preEditar(@PathVariable("id") Long id) {
+				ModelAndView model = new ModelAndView("usuario/cadastro");
+				model.addObject("usuario", service.findById(id));
+				return model;
+			}
+			
+			// pre edicao de cadastro de usuarios
+			@GetMapping("editar/dados/usuario/{id}/perfis/{perfis}")
+			public ModelAndView preEditarCadastroDadosPessoais(@PathVariable("id") Long id,
+															   @PathVariable("perfis") Long[] perfisId,
+															   @AuthenticationPrincipal User user) {
+			//	System.out.println("Username: " + user.getUsername());
+			//	System.out.println("Id do usuario: " + medicoService.findIdbyUsername(user.getUsername()));
+			// Atenção Atenção Atenção, Verificar se a url não foi alterada
+				
+				// Se o usuario é ADM e MEDICO, retorna os dados do medico, pois o adm não possui dados pessoais
+				if(usuario.getPerfis().contains(new Perfil(PerfilTipo.ADMIN.getCod())) &&
+				   !usuario.getPerfis().contains(new Perfil(PerfilTipo.MEDICO.getCod()))) {
+					return new ModelAndView("usuario/cadastro", "usuario", usuario);
+
+					// Se o Usuario é medico
+				}else if(usuario.getPerfis().contains(new Perfil(PerfilTipo.MEDICO.getCod()))) {
+					
+					Medico medico = medicoService.buscarUsuarioPorId(id);
+					System.out.println(medico);
+					return medico.hasNotId() ? new ModelAndView("medico/cadastro", "medico", new Medico(new Usuario(id)))
+											 : new ModelAndView("medico/cadastro", "medico", medico);
+					
+
+					// Dados pessoais do paciente não podem ser alterados pelo ADM
+				}else if(usuario.getPerfis().contains(new Perfil(PerfilTipo.PACIENTE.getCod()))) {
+					ModelAndView model = new ModelAndView("error");
+					model.addObject("status", 403);
+					model.addObject("error", "Área Restrita");
+					model.addObject("message", "Os dados de pacientes são restritos a ele;");
+					return model;
+				}
+				
+				return new ModelAndView("usuario/lista");
+			}
+			
+			@GetMapping("/editar/senha")
+			public String abrirEditarSenha() {
+				return "usuario/editar-senha";
+			}
+			
+			@PostMapping("/confirmar/senha")
+			public String editarSenha(@RequestParam("senha1") String s1, @RequestParam("senha2") String s2,
+									  @RequestParam("senha3") String s3, @AuthenticationPrincipal User user,
+									  RedirectAttributes attr) {
+				if(!s1.equals(s2)) {
+					attr.addFlashAttribute("falha", "Senhas não conferem, tente novamente.");
+					return "redirect:/u/editar/senha";
+				}
+				
+				Usuario u = service.findByEmail(user.getUsername());
+				if(!UsuarioServiceImpl.isSenhaCorreta(s3, u.getSenha())) {
+					attr.addFlashAttribute("falha", "Senha atual não confere, tente novamente.");
+					return "redirect:/u/editar/senha";
+				}
+				
+				service.alterarSenha(u, s1);
+				
+				attr.addFlashAttribute("sucesso", "Senha alterada com sucesso.");
+				return "redirect:/u/editar/senha";
+			}
+			
+			// abrir página de novo cadastro do paciente
+			@GetMapping("/novo/cadastro")
+			public String novoCadastro(Usuario usuario) {
+				return "cadastrar-se";
+			}
+			
+			// pagina de resposta do cadastro de paciente
+			@GetMapping("/cadastro/realizado")
+			public String cadastroRealizado() {
+				return "fragments/mensagem";
+			}
+			
+			//recebe o form da página cadastrar-se
+			// PS: Adiconar Validators
+			@PostMapping("/cadastro/paciente/salvar")
+			public String salvarCadastroPaciente(Usuario usuario, BindingResult result) throws MessagingException {
+				try {
+					service.salvarCadastroPaciente(usuario);
+				}catch(DataIntegrityViolationException ex) {
+					result.reject("email", "Ops ... Este e-mail já existe na base de dados.");
+					return "cadastrar-se";
+				}
+				return "redirect:/u/cadastro/realizado";
+				
+			}
+			
+			@GetMapping("/confirmacao/cadastro")
+			public String respostaConfirmacaoCadastroPaciente(@RequestParam("codigo") String codigo, 
+					RedirectAttributes attr) {
+				
+				service.ativarCadastroPaciente(codigo);
+				attr.addFlashAttribute("alerta", "sucesso");
+				attr.addFlashAttribute("titulo","Cadastro Ativado !!!");
+				attr.addFlashAttribute("texto","Parabéns, seu cadastro está ativo.");
+				attr.addFlashAttribute("subtexto", "Siga com seu login/senha.");
+				
+				return "redirect:/login";
+			}
+			
+			//abre a pagina de pedido de redefinicao de senha
+			@GetMapping("/p/redefinir/senha")
+			public String pedidoRedefinirSenha() {
+				return "usuario/pedido-recuperar-senha";
+			}
+			
+			//form de pedido de rucuperar senha
+			@GetMapping("/p/recuperar/senha")
+			public String redefinirSenha(String email, ModelMap model) throws MessagingException {
+				service.pedidoRedefinicaoDeSenha(email);
+				model.addAttribute("sucesso","Em instantes você receberá um e-mail para "
+						+ "prosseguir com a redifinição de sua senha.");
+				model.addAttribute("usuario", new Usuario(email));
+				
+				return "usuario/recuperar-senha";
+			}
+			//salvar a nova senha via recuperacao de senha
+			
+			@PostMapping("/p/nova/senha")
+			public String confirmacaoDeRedefinicaoDeSenha(Usuario usuario, ModelMap model) {
+				Usuario u = service.findByEmail(usuario.getEmail());
+				if(!usuario.getCodigoVerificador().equals(u.getCodigoVerificador())) {
+					model.addAttribute("falha", "Código verificador não confere;");
+					return "usuario/recuperar-senha";
+				}
+				
+				u.setCodigoVerificador(null);
+				service.alterarSenha(u, usuario.getSenha());
+				model.addAttribute("sucesso","Funcionou legal.");
+				model.addAttribute("alerta", "sucesso");
+				model.addAttribute("titulo", "Senha redefinida!!!");
+				model.addAttribute("texto", "Você já pode logar no sistema.");
+				return "login";
+			}
+			
+		}
+
+	login.html:
+
+		<!DOCTYPE html>
+		<html lang="pt" xmlns="http://www.w3.org/1999/xhtml"
+			xmlns:th="http://www.thymeleaf.org"
+			th:with="version=${#strings.randomAlphanumeric(3)}">
+		<head>
+		<title>Clínica Spring Security ::: Login</title>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+		<meta name="description" content="clínica médica com agendamento de consultas online" />
+		<link rel="icon" th:href="@{/image/favicon.ico}" />
+		<!-- Icons fontawesome -->
+		<link href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous" rel="stylesheet" />
+		<style>
+		.bd-placeholder-img {
+			font-size: 1.125rem;
+			text-anchor: middle;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+		}
+
+		@media ( min-width : 768px) {
+			.bd-placeholder-img-lg {
+				font-size: 3.5rem;
+			}
+		}
+		</style>
+
+		<!-- Custom styles for this template -->
+		<link th:href="@{/css/style-login.css(v=${version})}" rel="stylesheet" />
+		</head>
+		<body>
+			<form class="form-signin was-validated" method="post" 
+				th:action="@{/login}">
+				<div class="text-center mb-4">
+					<img class="mb-4" th:src="@{/image/spring-security.png}" alt=""
+						width="72" height="72">
+					<h1 class="h3 mb-3 font-weight-normal">Clínica Spring Security</h1>
+
+					<p class="font-weight-lighter">Seja bem-vindo.</p>
+					<p class="text-muted">Realize seu login para continuar</p>					
+					<div th:if="${alerta != null}" th:class="${alerta == 'erro'} ? 'alert alert-danger' : 'alert alert-success'"
+						 role="alert">
+					  <h4 th:text="${titulo}" class="alert-heading">Credenciais...</h4>
+					  <p th:text="${texto}">Login ou senha incorretos...</p>
+					  <hr>
+					  <p class="mb-0"><small th:text="${subtexto}">Acesso permitido...</small></p>
+					</div>
+				</div>
+				
+				<div th:replace="fragments/alert :: alerta-sucesso"></div>
+				
+				<div class="form-label-group">
+					<input type="email" id="inputEmail" class="form-control"
+						placeholder="Email address" name="username" required autofocus>
+					<label for="inputEmail">Email</label>
+					<div class="invalid-feedback">Use seu email cadastrado como login.</div>
+				</div>
+
+				<div class="form-label-group">
+					<input type="password" id="inputPassword" class="form-control"
+						placeholder="Password" name="password" required> 
+					<label for="inputPassword">Senha</label>
+					<div class="invalid-feedback">Digite sua senha.</div>	
+				</div>
+
+				<div class="checkbox mb-3">
+					<label> <input type="checkbox" id="remember-me" name="remember-me"/>
+						Remember me
+					</label>
+				</div>
+				<button class="btn btn-lg btn-primary btn-block" type="submit">Entrar</button>
+				<hr>
+				<nav class="nav nav-pills flex-column flex-sm-row">
+					<a class="flex-sm-fill text-sm-left nav-link text-decoration-none" th:href="@{/u/novo/cadastro}"><i class="far fa-arrow-alt-circle-right"></i>&nbsp;Novo cadastro</a>
+					<a class="flex-sm-fill text-sm-left nav-link text-decoration-none" th:href="@{/u/p/redefinir/senha}"><i class="fas fa-key"></i>&nbsp;Recuperar senha</a>
+					<a class="flex-sm-fill text-sm-left nav-link text-decoration-none" th:href="@{/}"><i class="fas fa-home"></i>&nbsp;Home</a>
+				</nav>
+				<p class="mt-5 mb-3 text-muted text-center">Clínica Spring
+					Security&copy; 2019</p>
+			</form>
+			<script src='https://code.jquery.com/ui/1.12.1/jquery-ui.min.js'></script>
+			<script th:src="@{/webjars/jquery/jquery.min.js(v=${version}) }"></script>
+			<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js(v=${version}) }"></script>
+		</body>
+		</html>
+
+	header.html:
+
+		<!DOCTYPE html>
+		<html xmlns:th="http://www.w3.org/1999/xhtml">
+		<head>
+		<meta charset="UTF-8">
+		</head>
+		<body>
+			<header th:fragment="cabecalho">
+				<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+					<a class="navbar-brand" th:href="@{/}">Clínica Spring Security</a>
+					<button class="navbar-toggler" type="button" data-toggle="collapse"
+						data-target="#navbarCollapse" aria-controls="navbarCollapse"
+						aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse" id="navbarCollapse">
+						<ul class="navbar-nav mr-auto">
+
+														Segmento autorizado para perfil ADMIN
+
+							<li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN')"><a
+								class="btn btn-dark dropdown-toggle" href="#" id="dropdown01"
+								data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Admistrador</a>
+								<div class="dropdown-menu" aria-labelledby="dropdown01">
+									<a class="dropdown-item" th:href="@{/especialidades}">Especialidades</a> 
+									<div class="dropdown-divider"></div>
+									<a class="dropdown-item" th:href="@{/u/novo/cadastro/usuario}">Cadastro de Usuários</a>
+									<a class="dropdown-item" th:href="@{/u/lista}">Lista de Usuários</a>
+								</div>
+							</li>
+														Segmento autorizado para perfil MEDICO
+
+							<li class="nav-item dropdown" sec:authorize="hasAuthority('MEDICO')"><a
+								class="btn btn-dark dropdown-toggle" href="#" id="dropdown02"
+								data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Médicos</a>
+								<div class="dropdown-menu" aria-labelledby="dropdown02">
+									<a class="dropdown-item" th:href="@{/medicos/dados}">Dados Cadastrais</a>
+									<a class="dropdown-item" th:href="@{/u/editar/senha}">Editar Senha</a>
+									<div class="dropdown-divider"></div>
+									<a class="dropdown-item" th:href="@{/agendamentos/historico/consultas}">Consultas Agendadas</a>
+								</div>
+							</li>
+
+														Segmento autorizado para perfil PACIENTE
+
+							<li class="nav-item dropdown" sec:authorize="hasAuthority('PACIENTE')"><a
+								class="btn btn-dark dropdown-toggle" href="#" id="dropdown03"
+								data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pacientes</a>
+								<div class="dropdown-menu" aria-labelledby="dropdown03">
+									<a class="dropdown-item" th:href="@{/pacientes/dados}">Cadastrar Dados</a>
+									<a class="dropdown-item" th:href="@{/u/editar/senha}">Editar Senha</a>
+									<div class="dropdown-divider"></div>
+									<a class="dropdown-item" th:href="@{/agendamentos/agendar}">Agendar Consulta</a>
+									<a class="dropdown-item" th:href="@{/agendamentos/historico/paciente}">Histórico de Consultas</a>
+								</div>
+							</li>					
+						</ul>
+
+														Segmento autorizado para quem não está logado
+
+						<form class="form-inline mt-2 mt-md-0" sec:authorize="!isAuthenticated()">
+							<div class="form-check mb-2 mr-sm-2">
+								<a class="btn btn-outline-success my-2 my-sm-0" role="button"
+									th:href="@{/login}">Login</a>
+							</div>
+
+							<div class="form-check mb-2 mr-sm-2">
+								<a class="btn btn-outline-success my-2 my-sm-0" role="button"
+									th:href="@{/u/novo/cadastro}">Cadastrar-se</a>
+							</div>
+						</form>
+
+														Segmento autorizado para quem está logado
+
+						<form th:action="@{/logout}" sec:authorize="isAuthenticated()"
+							  method="post"  class="form-inline mt-2 mt-md-0">
+							<div class="btn-group mb-2 mr-sm-2">
+								<button type="button" class="btn btn-light">
+									<i class="fas fa-user"></i> <span class=""
+										sec:authentication="name">Bob</span>
+								</button>
+								<button type="button"
+									class="btn btn-danger dropdown-toggle dropdown-toggle-split"
+									data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								</button>
+								<div class="dropdown-menu">
+									<button type="submit" class="dropdown-item">Sair</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</nav>
+			</header>
+		</body>
+		</html>
+
+4 - Converters 
+
+	@Component
+	public class EspecialidadesConverter implements Converter<String[], Set<Especialidade>>{
+
+		@Autowired
+		private EspecialidadeService service;
+		
+		@Override
+		public Set<Especialidade> convert(String[] titulos) {
+			Set<Especialidade> especialidades = new HashSet<>();
+			if(titulos != null && titulos.length > 0) {
+				especialidades.addAll(service.findByTitulos(titulos));
+			}
+			return especialidades;
+		}
+
+	}
+
+	@Component
+	public class PerfisConverter implements Converter<String[], List<Perfil>>{
+
+		@Override
+		public List<Perfil> convert(String[] source) {
+			List<Perfil> perfis= new ArrayList<>();
+			for(String id : source) {
+				// PS: Avaliar a página html, essa solução foi criada pq caso so tenho uma opção de perfil
+				// O html so retorna 1 perfil, e não um list com 1 perfil, então não entraria nesse conversor
+				// e seria necessário criar outro conversor, no entando adicionamos um valor antes de adicionar-
+				// mos o perfil, assim haverá sempre pelo menos 2 valores.
+				
+				if(!id.equals("0")) {
+					perfis.add(new Perfil(Long.parseLong(id)));
+				}
+			}
+			return perfis;
+		}
+
+	}
+
+5 - Validators
+
+	public class PacienteValidator implements Validator{
+
+		PacienteService service;
+		
+		public PacienteValidator(PacienteService service) {
+			this.service = service;	
+		}
+		
+		@Override
+		public boolean supports(Class<?> clazz) {
+			return Paciente.class.equals(clazz);
+		}
+
+		@Override
+		public void validate(Object object, Errors errors) {
+			Paciente entity = (Paciente) object;
+			
+			if(entity.getId() == null) {
+				if(service.existByName(entity.getNome()) > 0) {     
+					System.out.println(service.existByName(entity.getNome()));
+					errors.rejectValue("nome", "Existe.nome");
+				}	
+			}
+		
+		}
+
+	}
+
+6 - Exceptions
+
+	@ControllerAdvice
+	public class ExceptionController {
+
+		@ExceptionHandler(UsernameNotFoundException.class)
+		public ModelAndView usuarioNaoEncontradoException(UsernameNotFoundException ex) {
+			ModelAndView model = new ModelAndView("error");
+			model.addObject("status", 404);
+			model.addObject("error", "Operação não pode ser realizada.");
+			model.addObject("message", ex.getMessage());
+			return model;
+		}
+		
+		@ExceptionHandler(AcessoNegadoException.class)
+		public ModelAndView acessoNegadoException(AcessoNegadoException ex) {
+			ModelAndView model = new ModelAndView("error");
+			model.addObject("status", 403);
+			model.addObject("error", "Operação não pode ser realizada.");
+			model.addObject("message", ex.getMessage());
+			return model;
+		}
+		
+		@ExceptionHandler(MessagingException.class)
+		public ModelAndView messagingException(MessagingException ex) {
+			ModelAndView model = new ModelAndView("error");
+			model.addObject("error", "Código inválido.");
+			model.addObject("message", ex.getMessage());
+			return model;
+		}		
+	}
+
+7 - PersonalizedExceptions
+
+	@SuppressWarnings("serial")
+	public class AcessoNegadoException extends RuntimeException{
+		
+		public AcessoNegadoException(String message) {
+			super(message);
+		}
+
+	}
+
+8 - Projection
+
+	public interface HistoricoPaciente {
+
+		Long getId();
+		
+		Paciente getPaciente();
+		
+		String getDataConsulta();
+		
+		Medico getMedico();
+		
+		Especialidade getEspecialidade();
+	}
+
+9 - Repositorios
+
+		AgendamentoRepository:
+
+			public interface AgendamentoRepository extends JpaRepository<Agendamento, Long>{
+
+			
+			/*
+			 *  Retorna todos os horarios que não estão presentes nas consultas do Médico X na Data Y
+			 *  
+			 *  Primeiro ele puxa todos os horários, e testará 1 por 1 todos os horários.
+			 *  Ele buscará se existe alguma consulta que possua um medico com id A, data B e o horario passado.
+			 *  Se não for encontrado nenhuma consulta com esses paramêtros, então o horário será adicionado na  
+			 *  lista de horários disponíveis para a consulta. Abstrar a segunda parte do código.
+			 */
+			
+			@Query("select h from Horario h where not exists(select a from Agendamento a where a.medico.id = :id and a.dataConsulta = :data and a.horario.id = h.id) order by h.horaMinuto asc")
+			List<Horario> findByMedicoIdAndDataNotHorarioAgendado(Long id, LocalDate data);	
+
+			@Query(value = "SELECT * FROM agendamentos where id_paciente = ?1", nativeQuery = true)
+			List<Agendamento> findAgendamentosByIdPaciente(Long id);
+			
+			@Query(value = "SELECT * FROM agendamentos where id_paciente = ?1", nativeQuery = true)
+			Page<Agendamento> findAgendamentosByIdPaciente(Long id, Pageable pageable);
+			
+			//Retorna dados que serão utilizados para criar uma tabela personalizada via PROJECTION
+			// Excensialmente para acessar de forma personalizada os dados das consultas
+			@Query("select a.id as id,"
+					+ "a.paciente as paciente,"
+					+ "CONCAT(a.dataConsulta, ' ', a.horario.horaMinuto) as dataConsulta,"
+					+ "a.medico as medico,"
+					+ "a.especialidade as especialidade "
+					+ "from Agendamento a "
+					+ "where a.paciente.usuario.email like :email")
+			Page<HistoricoPaciente> findHistoricoByPacienteEmail(String email, Pageable pageable);
+			
+			//Retorna dados que serão utilizados para criar uma tabela personalizada via PROJECTION
+			
+			@Query("select a.id as id,"
+					+ "a.paciente as paciente,"
+					+ "CONCAT(a.dataConsulta, ' ', a.horario.horaMinuto) as dataConsulta,"
+					+ "a.medico as medico,"
+					+ "a.especialidade as especialidade "
+					+ "from Agendamento a "
+					+ "where a.medico.usuario.email like :email")
+			Page<HistoricoPaciente> findHistoricoByMedicoEmail(String email, Pageable pageable);
+			
+			/*
+			 * Sabemos que tanto o medico quanto o paciente podem alterar consultas relacionadas aos mesmos. Então estamos
+			 * verificando se o paciente ou medico estão tentando alterar uma consulta relacionada aos mesmos. Verificar se
+			 * a url foi alterada.
+			 * 
+			 * Primeiro ele busca o agendamento pelo id, depois verifica se o email do usuario presente no
+			 * paciente do agendamento é igual ao email passado. O email passado é o email do User logado no
+			 * sistema.
+			 * 
+			 */
+			@Query("select a from Agendamento a "
+					+ "where "
+					+ " (a.id = :id AND a.paciente.usuario.email like :email) "
+					+ " OR "
+					+ " (a.id = :id AND a.medico.usuario.email like :email)")
+			Optional<Agendamento> findByIdAndPacienteOrMedicoEmail(Long id, String email);
+
+		EspecialidadeRepository:
+
+			public interface EspecialidadeRepository extends JpaRepository<Especialidade, Long>{
+
+				// Retorna todos os tipos de especialidade
+				@Query(value = "select * from especialidades where titulo LIKE concat('%', ?1, '%')", nativeQuery = true)
+				Page<Especialidade> findAllByTitulo(String search, Pageable pageable);
+				
+				// Retorna todas as especialidades que contenham esse termo presente em seu titulo
+				@Query(value = "select titulo from especialidades where titulo LIKE concat('%', ?1, '%')", nativeQuery = true)
+				List<String> findEspecialidadeByTermo(String search);
+				
+				// Seleciona especialidade que tenha determinado titulo
+				@Query(value = "select * from especialidades where titulo LIKE ?1", nativeQuery = true)
+				Especialidade findByTitulo(String search);
+
+				// Buscar especialidade por titulos
+				@Query(value = "select * from especialidades where titulo IN ?1", nativeQuery = true)
+				Set<Especialidade> findByTitulos(String[] titulos);
+				
+				// Especialidades de um médico
+				@Query(value = "select * from especialidades as e inner join "
+						+ "medicos_tem_especialidades mte on mte.id_especialidade = e.id where mte.id_medico = ?1", nativeQuery = true)
+				Page<Especialidade> getEspecialidadesBy(Long id, Pageable pageable);
+				
+			}
+
+		HorarioRepository:
+
+			public interface HorarioRepository extends JpaRepository<Horario, Long>{
+
+				@Query(value = "select * from horario h where not exists(" + 
+				" select * from agendamentos a " + 
+				" inner join horario hora on hora.id = a.id_horario" + 
+				" inner join medicos m on m.id = a.id_medico" + 
+				" where m.id = ?1 and a.data_consulta = ?2 and hora.id = h.id) order by h.hora_minuto asc", nativeQuery = true)
+				List<Horario> findByMedicoIdAndDataNotHorarioAgendado(Long id, LocalDate data);	
+
+			}
+
+		MedicoRepository:
+
+			public interface MedicoRepository extends JpaRepository<Medico, Long>{
+
+				@Query(value = "select * from medicos m inner join usuarios u on m.id_usuario = u.id where u.id = ?1", 
+						nativeQuery = true)
+				Optional<Medico> findByUsuarioId(Long id);
+				
+				@Query(value = "select m.id from usuarios u inner join medicos m on u.id = m.id_usuario " + 
+						"where u.email like ?1 ", nativeQuery = true)
+				Long findIdbyUsername(String username);
+				
+				@Modifying
+			    @Transactional 
+				@Query(value = "delete from medicos_tem_especialidades where id_medico = ?1 and id_especialidade = ?2", 
+						nativeQuery = true)
+				void removeSpecialization(Long idMedico, Long idEspecialidade);
+				
+				@Query(value = "select * from medicos m " + 
+						"inner join medicos_tem_especialidades mte on mte.id_medico = m.id " + 
+						"inner join especialidades e on e.id = mte.id_especialidade where e.titulo = ?1", nativeQuery = true)
+				List<Medico> findMedicosByEspeciality(String titulo);
+
+				@Query("select m.id "
+						+ "from Medico m "
+						+ "join m.especialidades e "
+						+ "join m.agendamentos a "
+						+ "where "
+						+ "a.especialidade.id = :idEsp AND a.medico.id = :idMed")
+				Optional<Long> hasEspecialidadeAgendada(Long idMed, Long idEsp);
+
+			}
+
+		Paciente Repository:
+
+			public interface PacienteRepository extends JpaRepository<Paciente, Long>{
+
+				@Query(value = "select * from pacientes p inner join usuarios u on p.id_usuario = u.id where u.id = ?1", 
+						nativeQuery = true)
+				Optional<Paciente> findByPacienteId(Long id);
+				
+				@Query(value = "select p.id from usuarios u inner join pacientes p on u.id = p.id_usuario " + 
+						"where u.email like ?1 ", nativeQuery = true)
+				Long findIdbyUsername(String username);
+				
+				@Query(value = "select * from pacientes p inner join usuarios u on u.id = p.id_usuario " + 
+						"where u.email like ?1 ", nativeQuery = true)
+				Optional<Paciente> findPacientebyUsername(String username);
+				
+				@Query(value = "SELECT COUNT(*) FROM PACIENTES WHERE NOME = ?1", nativeQuery = true)
+				Integer existByName(String nome);
+				
+			}
+
+		UsuarioRepository:
+
+			public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
+	
+				@Query(value = "select * from usuarios u where u.email like ?1", nativeQuery=true)
+				Usuario findByEmail(String email);
+				
+				// Verificar se as URLs não foram alteradas manualmente
+				@Query(value = "select * from usuarios u " + 
+						"inner join usuarios_tem_perfis utp on u.id = utp.usuario_id " + 
+						"inner join perfis p on p.id = utp.perfil_id where p.descricao = ?1 or u.email like concat('%', ?1, '%')",
+						nativeQuery=true)		
+				Page<Usuario> findByEmailOrPerfil(String search, Pageable pageable);
+
+				@Query(value = "select * from usuarios u " + 
+						"inner join usuarios_tem_perfis utp on u.id = utp.usuario_id " + 
+						"inner join perfis p on p.id = utp.perfil_id where u.id = ?1 AND p.id IN ?2",
+						nativeQuery=true)	
+				Optional<Usuario> findByIdAndPerfis(Long id, Long[] perfisId);
+
+				@Query(value = "select id from usuarios u where u.email like ?1", nativeQuery=true)
+				Long getById(String email);
+				
+				@Query("select u from Usuario u where u.email like :email and u.ativo = true")
+				Optional<Usuario> findByEmailAndAtivo(String email);
+				
+			}
+
+10 - Datatables
+
+	Datatables:
+
+		@Component
+		public class Datatables {
+			
+			private HttpServletRequest request;
+			private String[] colunas;	
+
+			public Datatables() {
+				super();
+			}
+			
+			public Map<String, Object> getResponse(Page<?> page) {		
+				Map<String, Object> json = new LinkedHashMap<>();
+				json.put("draw", draw());
+				json.put("recordsTotal", page.getTotalElements());
+				json.put("recordsFiltered", page.getTotalElements());
+				json.put("data", page.getContent());
+				return json;
+			}	
+
+			public HttpServletRequest getRequest() {
+				return request;
+			}
+
+			public void setRequest(HttpServletRequest request) {
+				this.request = request;
+			}
+
+			public String[] getColunas() {
+				return colunas;
+			}
+
+			public void setColunas(String[] colunas) {
+				this.colunas = colunas;
+			}
+
+			private int draw() {
+				return Integer.parseInt(this.request.getParameter("draw"));
+			}
+			
+			private int start() {
+				return Integer.parseInt(this.request.getParameter("start"));
+			}
+			
+			public int getLength() {
+				return Integer.parseInt(this.request.getParameter("length"));
+			}
+
+			public int getCurrentPage() {
+				return start() / getLength();
+			}
+
+			public String getColumnName() {
+				int iCol = Integer.parseInt(this.request.getParameter("order[0][column]"));
+				return this.colunas[iCol];
+			}	
+
+			public Sort.Direction getDirection() {
+				String order = this.request.getParameter("order[0][dir]");
+				Sort.Direction sort = Sort.Direction.ASC;
+				if (order.equalsIgnoreCase("desc")) {
+					sort = Sort.Direction.DESC;
+				}
+				return sort;
+			}
+
+			public String getSearch() {		
+				return this.request.getParameter("search[value]");
+			}
+			
+			public Pageable getPageable() {
+				return PageRequest.of(getCurrentPage(), getLength(), getDirection(), getColumnName());
+			}
+		}
+
+	DatatablesColunas:
+
+		public class DatatablesColunas {
+
+			public static final String[] ESPECIALIDADES = {"id", "titulo"};
+
+			public static final String[] MEDICOS = {"id", "nome", "crm", "dtInscricao", "especialidades"};
+			
+			public static final String[] AGENDAMENTOS = {"id", "paciente.nome", "dataConsulta", "medico.nome", "especialidade.titulo"};
+
+			public static final String[] USUARIOS = {"id", "email", "ativo", "perfis"};	
+		}
+
+11 - ServiceImpl
+
+		AgendamentoServiceImpl:
+
+			@Service
+			public class AgendamentoServiceImpl implements AgendamentoService{
+
+				@Autowired
+				private AgendamentoRepository repository;
+				
+				@Autowired
+				private Datatables datatables;
+				
+				@Override
+				public void save(Agendamento entity) {
+					repository.save(entity);
+				}
+
+				@Override
+				public void update(Agendamento entity, String email) {
+					
+					
+					Agendamento entity2 = findByIdAndPacienteOrMedicoEmail(entity.getId(), email);
+					
+					BeanUtils.copyProperties(entity, entity2, "id", "paciente");
+					repository.save(entity2);
+				}
+
+				@Override
+				public void delete(Long id) {
+					repository.deleteById(id);
+				}
+
+				@Override
+				public List<Agendamento> getAll() {
+					return repository.findAll();	
+				}
+
+				@Override
+				public Agendamento findById(Long id) {
+					return repository.findById(id).get();
+				}
+
+				@Override
+				public List<Horario> buscarHorariosNaoAgendadosPorMedicoIdEData(Long id, LocalDate data) {
+					return repository.findByMedicoIdAndDataNotHorarioAgendado(id, data);
+				}
+
+				@Override
+				public List<Agendamento> findAgendamentosByIdPaciente(Long id) {
+					return repository.findAgendamentosByIdPaciente(id);
+				}
+				
+				
+				@Override
+				public Map<String, Object> buscarConsultasPorPacienteEmail(String email, HttpServletRequest request) {
+					datatables.setRequest(request);
+					datatables.setColunas(DatatablesColunas.AGENDAMENTOS);
+					Page<HistoricoPaciente> page = repository.findHistoricoByPacienteEmail(email, datatables.getPageable());
+					return datatables.getResponse(page);
+				}
+
+				@Override
+				public Map<String, Object> buscarConsultasPorMedicoEmail(String email, HttpServletRequest request) {
+					datatables.setRequest(request);
+					datatables.setColunas(DatatablesColunas.AGENDAMENTOS);
+					Page<HistoricoPaciente> page = repository.findHistoricoByMedicoEmail(email, datatables.getPageable());
+					return datatables.getResponse(page);
+				}
+
+				@Override
+				public Agendamento findByIdAndPacienteOrMedicoEmail(Long id, String email) {
+					return repository.findByIdAndPacienteOrMedicoEmail(id, email) 
+							.orElseThrow(() -> new AcessoNegadoException("Acesso negado ao usuário: " + email));
+				}
+				
+			//	public Map<String, Object> buscarConsultasByIdPaciente(HttpServletRequest request, Long id) {
+			//		datatables.setRequest(request);
+			//		datatables.setColunas(DatatablesColunas.AGENDAMENTOS);
+			//		
+			//		Page<Agendamento> page = repository.findAgendamentosByIdPaciente(id, datatables.getPageable());
+			//		
+			//		return datatables.getResponse(page);
+			//	}
+
+			}
+
+		EspecialidadeServiceImpl:
+
+			@Service
+			public class EspecialidadeServiceImpl implements EspecialidadeService{
+
+				@Autowired
+				private EspecialidadeRepository repository;	
+				
+				@Autowired
+				private Datatables datatables;
+				
+				@Override
+				@Transactional(readOnly=false)
+				public void save(Especialidade entity) {
+					repository.save(entity);
+				}
+
+				@Override
+				public void update(Especialidade entity, Long id) {
+					repository.save(entity);
+				}
+
+				@Override
+				@Transactional(readOnly=false)
+				public void delete(Long id) {
+					repository.deleteById(id);
+				}
+
+				@Override
+				public List<Especialidade> getAll() {
+					return repository.findAll();
+				}
+				
+				@Override
+				@Transactional(readOnly=true)
+				public Map<String, Object> buscarEspecialidades(HttpServletRequest request) {
+					datatables.setRequest(request);
+					datatables.setColunas(DatatablesColunas.ESPECIALIDADES);
+					
+					Page<?> page = datatables.getSearch().isEmpty()
+					? repository.findAll(datatables.getPageable()) 
+					: repository.findAllByTitulo(datatables.getSearch(), datatables.getPageable());
+					
+					return datatables.getResponse(page);
+				}
+
+				@Override
+				@Transactional(readOnly=true)
+				public Especialidade findById(Long id) {
+					return repository.findById(id).get();
+				}
+
+				@Override
+				@Transactional(readOnly=true)
+				public List<String> findEspecialidadeByTermo(String search) {
+					return repository.findEspecialidadeByTermo(search);
+				}
+
+				@Override
+				public Especialidade findByTitulo(String search) {
+					return repository.findByTitulo(search);
+				}
+
+				@Override
+				public Set<Especialidade> findByTitulos(String[] titulos) {
+					return repository.findByTitulos(titulos);
+				}
+
+				@Transactional(readOnly=true)
+				public Map<String, Object> buscarEspecialidadesDoMedico(Long id, HttpServletRequest request) {
+					datatables.setRequest(request);
+					datatables.setColunas(DatatablesColunas.ESPECIALIDADES);
+					
+					Page<Especialidade> page = repository.getEspecialidadesBy(id, datatables.getPageable());
+					
+					return datatables.getResponse(page);
+				}
+				
+			}
+
+		MedicoServiceImpl:
+
+			@Service
+			public class MedicoServiceImpl implements MedicoService{
+
+				@Autowired
+				MedicoRepository repository;
+				
+				@Override
+				@Transactional(readOnly = false)
+				public void save(Medico entity) {
+					repository.save(entity);
+				}
+
+				@Override
+				@Transactional(readOnly = false)
+				public void update(Medico entity) {
+					Medico entity2 = repository.findById(entity.getId()).get();
+					entity2.setCrm(entity.getCrm());
+					entity2.setDtInscricao(entity.getDtInscricao());
+					entity2.setNome(entity.getNome());
+					
+					if(!entity.getEspecialidades().isEmpty()) {
+						entity2.getEspecialidades().addAll(entity.getEspecialidades());
+					}
+					
+				//	repository.save(entity2);
+				}
+
+				@Override
+				public void delete(Long id) {
+					repository.deleteById(id);
+				}
+
+				@Override
+				public List<Medico> getAll() {
+					return repository.findAll();
+				}
+
+				@Override
+				public Map<String, Object> buscarMedicos(HttpServletRequest request) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public Medico findById(Long id) {
+					return repository.findById(id).get();
+				}
+
+				@Override
+				public Medico buscarUsuarioPorId(Long id) {
+					return repository.findByUsuarioId(id)
+					.orElse(new Medico());
+				}
+
+				@Override
+				public Optional<Medico> findByUsuarioId(Long id) {
+					return repository.findByUsuarioId(id);
+				}
+
+				@Override
+				public Long findIdbyUsername(String username) {
+					return repository.findIdbyUsername(username);
+				}
+
+				@Override
+				public void removeSpecialization(Long idMedico, Long idEspecialidade) {
+					repository.removeSpecialization(idMedico, idEspecialidade);
+				}
+
+				@Override
+				public List<Medico> findMedicosByEspeciality(String titulo) {
+					return repository.findMedicosByEspeciality(titulo);
+				}
+
+				@Override
+				public boolean existeEspecialidadeAgendada(Long idMed, Long idEsp) {
+					
+					return repository.hasEspecialidadeAgendada(idMed, idEsp).isPresent();
+				}
+
+			}
+
+		PacienteServiceImpl:
+
+			@Service
+			public class PacienteServiceImpl implements PacienteService{
+
+				@Autowired
+				PacienteRepository repository;
+				
+				@Override
+				public void save(Paciente entity) {
+					repository.save(entity);
+				}
+
+				@Override
+				public void update(Paciente entity) {
+			//		Medico entity2 = repository.findById(entity.getId()).get();
+			//		entity2.setCrm(entity.getCrm());
+			//		entity2.setDtInscricao(entity.getDtInscricao());
+			//		entity2.setNome(entity.getNome());
+			//		
+			//		if(!entity.getEspecialidades().isEmpty()) {
+			//			entity2.getEspecialidades().addAll(entity.getEspecialidades());
+			//		}
+			//		
+				}
+
+				@Override
+				public void delete(Long id) {
+					repository.deleteById(id);
+					
+				}
+
+				@Override
+				public List<Paciente> getAll() {
+					return repository.findAll();
+				}
+
+				@Override
+				public Map<String, Object> buscarPacientes(HttpServletRequest request) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public Paciente findById(Long id) {
+					return repository.findById(id).get();
+				}
+
+				@Override
+				public Optional<Paciente> findByPacienteId(Long id) {
+					return repository.findByPacienteId(id);
+				}
+
+				@Override
+				public Long findIdbyUsername(String username) {
+					return repository.findIdbyUsername(username);
+				}
+
+				@Override
+				public Optional<Paciente> findPacientebyUsername(String username) {
+					return repository.findPacientebyUsername(username);
+				}
+
+				@Override
+				public Integer existByName(String nome) {
+					return repository.existByName(nome);
+				}
+
+			}
+
+12 - Serviço de Email
+	
+	Configuração:
+
+		POM.XML:
+
+			<dependency>
+		        <groupId>org.springframework.boot</groupId>
+		        <artifactId>spring-boot-starter-mail</artifactId>
+		    </dependency>
+
+		application.properties:
+
+			#JAVAMAIL
+			spring.mail.host=smtp.gmail.com
+			spring.mail.port=587
+			spring.mail.username=allissonjardel1@gmail.com
+			spring.mail.password=paralelogramo1
+			spring.mail.properties.mail.smtp.auth=true
+			spring.mail.properties.mail.smtp.starttls.enable=true
+			spring.mail.test-connection=true
+
+	EmailServiceImpl:
+
+		@Service
+		public class EmailServiceImpl {
+
+			@Autowired
+			private JavaMailSender mailSender;
+			
+			@Autowired
+			private SpringTemplateEngine template;
+			
+			public void enviarPedidoDeConfirmacaoDeCadastro(String destino, String codigo) throws MessagingException {
+				MimeMessage message = mailSender.createMimeMessage();
+				MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
+			
+				Context context = new Context();
+				context.setVariable("titulo", "Bem vindo a clinica Spring Security");
+				context.setVariable("texto", "Precisamos que confirme seu cadastro, clicando no link abaixo.");
+				context.setVariable("linkConfirmacao", "http://localhost:8080/u/confirmacao/cadastro?codigo="+codigo);
+				
+				String html = template.process("email/confirmacao", context);
+				helper.setTo(destino);
+				helper.setText(html, true);
+				helper.setSubject("Confirmacao de cadastro");
+				helper.setFrom("nao-responder@clinica.com.br");
+				
+				helper.addInline("logo", new ClassPathResource("/static/image/spring-security.png"));
+				
+				mailSender.send(message);
+			}
+			
+			public void enviarPedidoRedefinicaoSenha(String destino, String verificador) throws MessagingException {
+				MimeMessage message = mailSender.createMimeMessage();
+				MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
+			
+				Context context = new Context();
+				context.setVariable("titulo", "Redefinição de senha");
+				context.setVariable("texto", "Para redefinir sua senha use o código de verificação quando exigido no formulário.");
+				context.setVariable("verificador", verificador);
+				
+				String html = template.process("email/confirmacao", context);
+				helper.setTo(destino);
+				helper.setText(html, true);
+				helper.setSubject("Redefinição de Senha");
+				helper.setFrom("no-replay@clinica.com.br");
+				
+				helper.addInline("logo", new ClassPathResource("/static/image/spring-security.png"));
+				
+				mailSender.send(message);
+			}
+			
+		}
+
+	UsuarioController:
+
+		@Controller
+		@RequestMapping("u")
+		public class UsuarioController {
+
+			
+			//recebe o form da página cadastrar-se
+			@PostMapping("/cadastro/paciente/salvar")
+			public String salvarCadastroPaciente(Usuario usuario, BindingResult result) throws MessagingException {
+				try {
+					service.salvarCadastroPaciente(usuario);
+				}catch(DataIntegrityViolationException ex) {
+					result.reject("email", "Ops ... Este e-mail já existe na base de dados.");
+					return "cadastrar-se";
+				}
+				return "redirect:/u/cadastro/realizado";
+				
+			}
+			
+			@GetMapping("/confirmacao/cadastro")
+			public String respostaConfirmacaoCadastroPaciente(@RequestParam("codigo") String codigo, 
+					RedirectAttributes attr) {
+				
+				service.ativarCadastroPaciente(codigo);
+				attr.addFlashAttribute("alerta", "sucesso");
+				attr.addFlashAttribute("titulo","Cadastro Ativado !!!");
+				attr.addFlashAttribute("texto","Parabéns, seu cadastro está ativo.");
+				attr.addFlashAttribute("subtexto", "Siga com seu login/senha.");
+				
+				return "redirect:/login";
+			}
+			
+			//abre a pagina de pedido de redefinicao de senha
+			@GetMapping("/p/redefinir/senha")
+			public String pedidoRedefinirSenha() {
+				return "usuario/pedido-recuperar-senha";
+			}
+			
+			//form de pedido de rucuperar senha
+			@GetMapping("/p/recuperar/senha")
+			public String redefinirSenha(String email, ModelMap model) throws MessagingException {
+				service.pedidoRedefinicaoDeSenha(email);
+				model.addAttribute("sucesso","Em instantes você receberá um e-mail para "
+						+ "prosseguir com a redifinição de sua senha.");
+				model.addAttribute("usuario", new Usuario(email));
+				
+				return "usuario/recuperar-senha";
+			}
+			//salvar a nova senha via recuperacao de senha
+			
+			@PostMapping("/p/nova/senha")
+			public String confirmacaoDeRedefinicaoDeSenha(Usuario usuario, ModelMap model) {
+				Usuario u = service.findByEmail(usuario.getEmail());
+				if(!usuario.getCodigoVerificador().equals(u.getCodigoVerificador())) {
+					model.addAttribute("falha", "Código verificador não confere;");
+					return "usuario/recuperar-senha";
+				}
+				
+				u.setCodigoVerificador(null);
+				service.alterarSenha(u, usuario.getSenha());
+				model.addAttribute("sucesso","Funcionou legal.");
+				model.addAttribute("alerta", "sucesso");
+				model.addAttribute("titulo", "Senha redefinida!!!");
+				model.addAttribute("texto", "Você já pode logar no sistema.");
+				return "login";
+			}
+			
+		}
+
+	UsuarioServiceImpl:
+
+		@Service
+		public class UsuarioServiceImpl implements UserDetailsService{
+			
+			@Autowired
+			UsuarioRepository repository;
+			
+			@Autowired
+			private Datatables datatables;
+			
+			@Autowired
+			private EmailServiceImpl emailService;
+			
+			public Usuario findByEmail(String email) {
+				return repository.findByEmail(email);
+			}
+			
+			public void emailDeConfirmacaoDeCadastro(String email) throws MessagingException {
+				String codigo = Base64Utils.encodeToString(email.getBytes());
+				emailService.enviarPedidoDeConfirmacaoDeCadastro(email, codigo);
+			}
+			
+			public void ativarCadastroPaciente(String codigo) {
+				String email = new String(Base64Utils.decodeFromString(codigo));
+				Usuario usuario = repository.findByEmail(email);
+				
+				if(usuario.hasNotId()) {
+					throw new AcessoNegadoException("Não foi possível ativar seu cadastro. Entre em "
+							+"contato com o suporte.");
+				}
+				usuario.setAtivo(true);
+				repository.save(usuario);
+			}
+			
+			@Transactional(readOnly=false)
+			public void pedidoRedefinicaoDeSenha(String email) throws MessagingException {
+				Usuario usuario = findByEmailAndAtivo(email).orElseThrow(() -> new UsernameNotFoundException("Usuario "
+						+ email + "não encontrado."));
+				String verificador = RandomStringUtils.randomAlphanumeric(6);
+				usuario.setCodigoVerificador(verificador);
+			//	repository.save(usuario);
+				emailService.enviarPedidoRedefinicaoSenha(email, verificador);
+			}
+			
+		}
+
+13- Integração direta com o thymeleaf - Consultar o código
+
+14 - Estudar SQL e PSQL, de suma importância para consutas em BD
+
+15 - Testar o DataIntegrity presente no UserController

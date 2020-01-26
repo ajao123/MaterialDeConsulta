@@ -1,6 +1,24 @@
 
 Projeto abordado : cursoUdemyRest
 
+
+	1 - Interação Thymeleaf
+
+		Regras: 
+
+			1 - Qualquer valores presente como paramêtro será retornado caso o retorno da função seja uma String que seja o caminho de uma página.
+				Essa regra não vale para ModelMap model, ModelAndView e Redirect.
+				Em outra palavras, caso o retorno seja o caminho de uma página, os paramêtros podem servir tanto para receber valores quanto para enviar valores.
+
+			2 - ModelAndView e ModelMap retornam valores por nome de acordo com os valores presentes em: ( th:object, th:text, th:each ...)
+
+			3 - Caso seja retornado por paramêtro em vez do ModelAndView, o th:object tem que ter o nome referente a classe.
+
+			4 - Como padrão em formulário, sempre coloque o nome do formulario referente a sua classe, para evitar possíveis problemas.
+
+			5-  Redirect: Redireciona atributos para outra função. Na função abaixo, recebe uma entidade Funcionario, BindingResult representa a validação dos atributos da entidade Funcionario e RedirectAttributes attr representa os atributos que irão ser redirecionados. SÓ SÃO ENVIADOS PARA A FUNÇÃO OS VALORES NO REDIRECT, OU SEJA, OS VALORES PRESENTES COMO PARAMÊTROS NÃO SÃO ENVIADOS.
+
+
 	WebControllers:
 
 		1 - Encaminhando para uma página

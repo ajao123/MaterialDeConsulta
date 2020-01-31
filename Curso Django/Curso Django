@@ -1,0 +1,294 @@
+Criando pasta
+
+	mkdir projTeste
+
+Configuração Django:
+
+	Entrando na pasta
+		
+		cd projTeste
+
+	Adicionando venv:
+
+		python3 -m venv venv
+
+	Entrando no venv:
+
+		cd venv
+
+	Entrando em Scripts:
+
+		cd Scripts
+
+	Ativando scripts:
+
+		activate
+
+	Voltando:
+
+		cd ..
+		cd ..
+
+	Instalando Django:
+
+		pip install django
+
+		import django
+
+		django.VERSION
+
+
+		django-admin startproject pontos_turisticos .
+
+	Editando configuração:
+
+		Adicionar migrate, runserver e makemigrations
+
+	Comando de conexão de server:
+
+		executar migrate
+
+		python manage.py createsuperuser
+
+			Em seguida:
+
+				Username (leave blank to use 'allissonjardel'): admin
+				Email address:
+				Password:
+				Password (again):
+				The password is too similar to the username.
+				This password is too short. It must contain at least 8 characters.
+				This password is too common.
+				Bypass password validation and create user anyway? [y/N]: y
+				Superuser created successfully.
+
+	pip install djangorestframework
+
+	Add "'rest_framework'," no settings.py(Installed_apps)
+
+	migrate
+
+
+	python manage.py startapp core
+	python manage.py startapp atracoes
+	python manage.py startapp comentarios
+	python manage.py startapp avaliacoes
+	python manage.py startapp enderecos
+
+Implementação dos códigos:
+	
+	pontos_turisticos/urls :
+
+		from django.contrib import admin
+		from django.conf.urls import include
+		from django.urls import path
+		from rest_framework import routers
+		from core.api.viewsets import PontoTuristicoViewSet
+
+		router = routers.DefaultRouter()
+		router.register(r'pontoturistico', PontoTuristicoViewSet)
+
+		urlpatterns = [
+		    path('', include(router.urls)),
+		    path('admin/', admin.site.urls),
+		]
+
+	core/api/viewsets :
+
+		from rest_framework.viewsets import ModelViewSet
+		from .serializers import PontoTuristicoSerializer
+		from core.models import PontoTuristico
+
+		class PontoTuristicoViewSet(ModelViewSet):
+		    queryset = PontoTuristico.objects.all()
+		    serializer_class = PontoTuristicoSerializer
+
+	core/api/serializers :
+
+		from rest_framework.serializers import ModelSerializer
+		from core.models import PontoTuristico
+
+		class PontoTuristicoSerializer(ModelSerializer):
+		    class Meta:
+		        model = PontoTuristico
+		        fields = ('id', 'nome', 'descricao')
+
+
+
+
+
+
+
+
+
+
+
+
+		        
+
+
+Settings, Urls, Models, Serializers e Viewsets:
+
+	Settings - pontos_turisticos/settings:
+
+		INSTALLED_APPS = [
+		    'django.contrib.admin',
+		    'django.contrib.auth',
+		    'django.contrib.contenttypes',
+		    'django.contrib.sessions',
+		    'django.contrib.messages',
+		    'django.contrib.staticfiles',
+		    'rest_framework',
+		    'core',
+		    'recursos',
+		    'comentarios',
+		    'avaliacoes',
+		    'enderecos',
+		]
+
+	Urls - pontos_turisticos/urls:
+
+		router = routers.DefaultRouter()
+		router.register(r'pontoturistico', PontoTuristicoViewSet)
+		router.register(r'recurso', RecursoViewSet)
+		router.register(r'endereco', EnderecoViewSet)
+		router.register(r'comentario', ComentarioViewSet)
+		router.register(r'avaliacao', AvaliacaoViewSet)
+
+		urlpatterns = [
+		    path('', include(router.urls)),
+		    path('admin/', admin.site.urls),
+		]
+
+	Models:
+
+		core/models.py:
+
+			class PontoTuristico(models.Model):
+			    nome = models.CharField(max_length=150)
+			    descricao = models.TextField()
+			    aprovado = models.BooleanField(default = False)
+			    recursos = models.ManyToManyField(Recurso)
+			    comentarios = models.ManyToManyField(Comentario)
+			    avaliacoes = models.ManyToManyField(Avaliacao)
+			    endereco = models.ForeignKey(Endereco, on_delete=models.CASCADE, null=True, blank=True)
+
+			    def __str__(self):
+			        return self.nome	
+
+    	recursos/models.py:
+
+    		class Recurso(models.Model):
+			    nome = models.CharField(max_length=150)
+			    descricao = models.TextField()
+			    horario_func = models.TextField()
+			    idade_minima = models.IntegerField()
+
+			    def __str__(self):
+					return self.nome
+
+    	enderecos/models.py:
+
+    		class Endereco(models.Model):
+			    linha1 = models.CharField(max_length=150)
+			    linha2 = models.CharField(max_length=150, null=True, blank=True)
+			    cidade = models.CharField(max_length=100)
+			    estado = models.CharField(max_length=50)
+			    pais = models.CharField(max_length=70)
+			    latitude = models.IntegerField(null=True, blank=True)
+			    longitude = models.IntegerField(null=True, blank=True)
+
+			    def __str__(self):
+        			return self.linha1
+
+    	comentarios/models.py:
+
+    		class Comentario(models.Model):
+			    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+			    comentario = models.TextField()
+			    data = models.DateTimeField(auto_now_add=True)
+			    aprovado = models.BooleanField(default=True)
+
+			    def __str__(self):
+			        return self.usuario.username
+
+    	avaliacoes/models.py:
+
+    		class Avaliacao(models.Model):
+			    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+			    comentario = models.TextField(null=True, blank=True)
+			    nota = models.DecimalField(max_digits=3, decimal_places=2)
+			    data = models.DateTimeField(auto_now_add=True)
+
+			    def __str__(self):
+			        return self.usuario.username
+
+	Viewsets:
+
+		core/api/viewsets:
+
+			class PontoTuristicoViewSet(ModelViewSet):
+			    queryset = PontoTuristico.objects.all()
+			    serializer_class = PontoTuristicoSerializer
+
+		recursos/api/viewsets:
+
+			class RecursoViewSet(ModelViewSet):
+			    queryset = Recurso.objects.all()
+			    serializer_class = RecursoSerializer
+
+		enderecos/api/viewsets:
+
+			class EnderecoViewSet(ModelViewSet):
+			    queryset = Endereco.objects.all()
+			    serializer_class = EnderecoSerializer
+
+		comentarios/api/viewsets:
+
+			class ComentarioViewSet(ModelViewSet):
+			    queryset = Comentario.objects.all()
+			    serializer_class = ComentarioSerializer
+
+		avaliacoes/api/viewsets:
+
+			class AvaliacaoViewSet(ModelViewSet):
+			    queryset = Avaliacao.objects.all()
+			    serializer_class = AvaliacaoSerializer
+
+	Serializers:
+
+		core/api/serializers:
+
+			class PontoTuristicoSerializer(ModelSerializer):
+			    class Meta:
+			        model = PontoTuristico
+			        fields = ['id', 'nome', 'descricao']
+
+		recursos/api/serializers:
+
+			class RecursoSerializer(ModelSerializer):
+			    class Meta:
+			        model = Recurso
+			        fields = ['nome', 'descricao', 'horario_func', 'idade_minima']
+
+		enderecos/api/serializers:
+
+			class EnderecoSerializer(ModelSerializer):
+			    class Meta:
+			        model = Endereco
+			        fields = ['linha1', 'linha2', 'cidade', 'estado',
+			                  'pais','latitude', 'longitude']
+
+		comentarios/api/serializers:
+
+			class ComentarioSerializer(ModelSerializer):
+			    class Meta:
+			        model = Comentario
+			        fields = ['id', 'usuario', 'comentario', 'data', 'aprovado']
+
+		avaliacoes/api/serializers:
+
+			class AvaliacaoSerializer(ModelSerializer):
+			    class Meta:
+			        model = Avaliacao
+			        fields = ['id', 'usuario', 'comentario', 'nota', 'data']

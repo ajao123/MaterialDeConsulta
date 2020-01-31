@@ -1,0 +1,606 @@
+Herança e polimorfismo
+
+	Herança:
+
+		Classe Account:
+
+			public class Account {
+
+				private Integer number;
+				private String holder;
+				private Double balance;
+				
+				public Account() {
+					
+				}
+
+				public Account(Integer number, String holder, Double balance) {
+					this.number = number;
+					this.holder = holder;
+					this.balance = balance;
+				}
+
+				public Integer getNumber() {
+					return number;
+				}
+
+				public void setNumber(Integer number) {
+					this.number = number;
+				}
+
+				public String getHolder() {
+					return holder;
+				}
+
+				public void setHolder(String holder) {
+					this.holder = holder;
+				}
+
+				public Double getBalance() {
+					return balance;
+				}
+
+				public void withdraw(Double amount) {
+					balance-=amount;
+				}
+				
+				public void deposit(Double amount) {
+					balance+=amount;
+				}
+
+				@Override
+				public String toString() {
+					return "Account [number=" + number + ", holder=" + holder + ", balance=" + balance + "]";
+				}
+			}
+
+		Classe BusinessAccount:
+
+			public class BusinessAccount extends Account{
+
+				private Double loanLimit;
+				
+				public BusinessAccount() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
+
+				public BusinessAccount(Integer number, String holder, Double balance, Double loanLimit) {
+					super(number, holder, balance);
+					this.loanLimit = loanLimit;
+				}
+
+				public Double getLoanLimit() {
+					return loanLimit;
+				}
+
+				public void setLoanLimit(Double loanLimit) {
+					this.loanLimit = loanLimit;
+				}
+				
+				public void loan(Double amount) {
+					if(amount <= loanLimit) {
+						deposit(amount);
+					}
+				}
+
+				@Override
+				public String toString() {
+					return "BusinessAccount [loanLimit=" + loanLimit +  ", " +super.toString() +"]";
+				}
+				
+			}
+
+	Upcasting e DownCasting:
+
+		Classe SavingsAccount:
+
+			public class SavingsAccount extends Account{
+
+				private Double intesrestRate;
+
+				public SavingsAccount() {
+					super();
+				}
+
+				public SavingsAccount(Integer number, String holder, Double balance, Double intesrestRate) {
+					super(number, holder, balance);
+					this.intesrestRate = intesrestRate;
+				}
+
+				public Double getIntesrestRate() {
+					return intesrestRate;
+				}
+
+				public void setIntesrestRate(Double intesrestRate) {
+					this.intesrestRate = intesrestRate;
+				}
+				
+				public void updateBalance() {
+					System.out.println("SavingsAccount Atualizado !!!");
+				}
+
+				@Override
+				public String toString() {
+					return "SavingsAccount [intesrestRate=" + intesrestRate +", "+ super.toString() +"]";
+				}
+
+			}
+
+		Application:
+
+			public class Application {
+
+				public static void main(String[] args) {
+
+					BusinessAccount ac =  new BusinessAccount(1, "Joao", 200.0, 50.0);
+					System.out.println(ac);
+					
+					//UPCASTING
+					// Não podem utilizar as funções das classes especializadas, a menos que a SuperClasse também tenha a função
+					Account acc1 = ac;
+					System.out.println("ACC1: " + acc1.toString());
+				
+					Account acc2 = new BusinessAccount(1003, "Bob", 0.0, 500.0);
+					
+					System.out.println("ACC2: " + acc2.toString());
+					
+					Account acc3 = new SavingsAccount(1004, "Anna", 0.0, 0.01);
+					System.out.println("ACC3: " + acc3.toString());
+					
+					
+					//DOWNCASTING
+					// Coventerdo Account para BusinessAccount
+					BusinessAccount acc4 = (BusinessAccount) acc2;
+					System.out.println("ACC4 : " + acc4.toString());
+					
+					// Erro: converter BusinessAccoutn para SavingsAccount e vice versa
+					
+					// Se acc3 é uma instância de BusinessAccount
+					if(acc3 instanceof BusinessAccount) {
+						BusinessAccount acc5 = (BusinessAccount) acc3;
+						acc5.loan(200.0);
+						System.out.println("ACC5 : " + acc5.toString());
+					}
+					
+					// Se acc3 é uma instância de SavingsAccount
+					if(acc3 instanceof SavingsAccount) {
+						SavingsAccount acc6 = (SavingsAccount) acc3;
+						acc6.updateBalance();
+						System.out.println("ACC6 : " + acc6.toString());
+					}
+					
+				}
+			}
+
+	Sobreposição, @Override e super:
+
+		Application:
+
+			public class Application {
+
+				public static void main(String[] args) {
+
+					Account ac = new Account(10, "Augusto", 1000.0);
+					
+					ac.withdraw(10.0);
+					System.out.println(ac);
+					
+					// 800
+
+					SavingsAccount sac = new SavingsAccount(20, "Pedro", 1000.0, 200.0);
+					
+					sac.withdraw(10.0);
+					System.out.println(sac);
+					
+					// 795
+
+					BusinessAccount bac = new BusinessAccount(20, "Pedro", 1000.0, 200.0);
+					
+					bac.withdraw(10.0);
+					System.out.println(bac);
+					
+					// 793
+
+				}
+			}
+
+		Account:
+
+			public class Account {
+
+				private Integer number;
+				private String holder;
+				protected Double balance;
+				
+				public Account() {
+					
+				}
+
+				public Account(Integer number, String holder, Double balance) {
+					this.number = number;
+					this.holder = holder;
+					this.balance = balance;
+				}
+
+				public Integer getNumber() {
+					return number;
+				}
+
+				public void setNumber(Integer number) {
+					this.number = number;
+				}
+
+				public String getHolder() {
+					return holder;
+				}
+
+				public void setHolder(String holder) {
+					this.holder = holder;
+				}
+
+				public Double getBalance() {
+					return balance;
+				}
+
+				public void withdraw(Double amount) {
+					// 5 da taxa
+					balance-=amount+5;
+				}
+				
+				public void deposit(Double amount) {
+					balance+=amount;
+				}
+
+				@Override
+				public String toString() {
+					return "Account [number=" + number + ", holder=" + holder + ", balance=" + balance + "]";
+				}
+			}
+
+		BusinessAccount:
+
+			public class BusinessAccount extends Account{
+
+				private Double loanLimit;
+				
+				public BusinessAccount() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
+
+				public BusinessAccount(Integer number, String holder, Double balance, Double loanLimit) {
+					super(number, holder, balance);
+					this.loanLimit = loanLimit;
+				}
+
+				public Double getLoanLimit() {
+					return loanLimit;
+				}
+
+				public void setLoanLimit(Double loanLimit) {
+					this.loanLimit = loanLimit;
+				}
+				
+				public void loan(Double amount) {
+					if(amount <= loanLimit) {
+						deposit(amount);
+					}
+				}
+				
+				@Override
+				public void withdraw(Double amount) {
+					super.withdraw(amount+2);
+				}
+
+				@Override
+				public String toString() {
+					return "BusinessAccount [loanLimit=" + loanLimit +  ", " +super.toString() +"]";
+				}
+				
+			}
+
+		SavingsAccount:
+
+			public class SavingsAccount extends Account{
+
+				private Double intesrestRate;
+
+				public SavingsAccount() {
+					super();
+				}
+
+				public SavingsAccount(Integer number, String holder, Double balance, Double intesrestRate) {
+					super(number, holder, balance);
+					this.intesrestRate = intesrestRate;
+				}
+				
+				@Override
+				public void withdraw(Double amount) {
+					balance-=amount;
+				}
+				
+				
+				public Double getIntesrestRate() {
+					return intesrestRate;
+				}
+
+				public void setIntesrestRate(Double intesrestRate) {
+					this.intesrestRate = intesrestRate;
+				}
+				
+				public void updateBalance() {
+					System.out.println("SavingsAccount Atualizado !!!");
+				}
+
+				@Override
+				public String toString() {
+					return "SavingsAccount [intesrestRate=" + intesrestRate +", "+ super.toString() +"]";
+				}
+
+			}
+
+	Classes e métodos final:			
+
+		Se colocarmos "final" numa classe, a mesma não poderá ser extendida.
+
+
+			public final class SavingsAccount extends Account{
+
+			}
+
+		Se colocarmos em um método, o mesmo não poderá ser sobreposto.
+
+			@Override
+			public final void withdraw(double amount){
+				Balance -= amount;		
+			}
+	
+	Polimorfismo:
+	
+		// Mesmo tipo de variáveis, mas tratamentos diferentes.
+
+		Application:
+
+			public class Application {
+
+				public static void main(String[] args) {
+
+					Account x = new Account(10, "Augusto", 1000.0);
+					Account y =  new SavingsAccount(20, "Maria", 1000.0, 0.01);
+					
+					x.withdraw(50.0);
+					y.withdraw(50.0);
+					
+					System.out.println("X: "+x.toString());
+					System.out.println("Y: "+y.toString());
+			 	}
+			}		
+
+			X: Account [number=10, holder=Augusto, balance=945.0]
+			Y: SavingsAccount [intesrestRate=0.01, Account [number=20, holder=Maria, balance=950.0]]
+
+	Classes Abstratas:
+
+		Application:
+
+			public class Application {
+
+				public static void main(String[] args) {
+
+					List<Account> list = new ArrayList<>();
+					
+					list.add(new SavingsAccount(1001, "Alex", 500.0, 0.01));
+					list.add(new BusinessAccount(1002, "Maria", 1000.0, 400.0));
+					list.add(new SavingsAccount(1003, "Bob", 300.0, 0.01));
+					list.add(new BusinessAccount(1004, "Anna", 500.0, 500.0));
+					
+					//System.out.println(list.get(1).getLoanLimit()); Não funciona
+					//Funciona
+					System.out.println(( (BusinessAccount) list.get(1)).getLoanLimit());
+					double sum = 0;
+					for(Account ac : list) {
+						System.out.println(ac.toString());
+						sum += ac.getBalance();
+					}
+					 System.out.println("Soma total: " + sum);
+					 // Depositanto 10 reais em td mundo
+					 for(Account ac : list) {
+						ac.deposit(10.0);
+						System.out.println(ac.toString());
+					}
+					 
+			 	}
+			}
+
+		Account:
+
+			public abstract class Account {
+
+			}
+
+	Métodos Abstratos:
+
+		public abstract class Shape {
+
+			private Color color;
+
+			public Shape() {
+				// TODO Auto-generated constructor stub
+			}
+			
+			public Shape(Color color) {
+				this.color = color;
+			}
+			
+			public Color getColor() {
+				return color;
+			}
+
+			public void setColor(Color color) {
+				this.color = color;
+			}
+			
+			// Qualquer classe que extenda a classe Shape deverá implementar a função area().
+
+			public abstract double area();
+			
+		}
+
+Interface
+
+	Exemplo1:
+
+		Interface:
+
+			TaxService:
+				public interface TaxService{
+					double tax(double amount);
+				}
+
+		Classes:
+
+			BrasilTaxService:
+
+				public class BrazilTaxService implements TaxService{
+
+					public double tax(double amount){
+
+						if(amount <= 100.0){
+							return amount * 0.2;
+						}else{
+							return amount * 0.15;
+						}
+
+					}
+
+				}
+
+			UsaTaxService:
+
+				public class UsaTaxService implements TaxService{
+
+					public double tax(double amount){
+
+						if(amount <= 100.0){
+							return amount * 0.5;
+						}else{
+							return amount * 0.35;
+						}
+
+					}
+
+				}
+
+	AbstractClass e Interface:
+
+		Application:
+
+			public class Application {
+
+				public static void main(String[] args) {
+					
+					AbstractShape as = new Rectangle(Color.RED, 10.0, 11.0);
+					System.out.println(as);
+			 	}
+			}
+
+		Interface Shape:
+
+			public interface Shape {
+
+				double area();
+				
+			}
+
+		Classe AbstractShape:
+
+			public abstract class AbstractShape implements Shape{
+				
+				private Color color;
+				
+				public AbstractShape() {
+					// TODO Auto-generated constructor stub
+				}
+
+				public AbstractShape(Color color) {
+					this.color = color;
+				}
+
+				public Color getColor() {
+					return color;
+				}
+
+				public void setColor(Color color) {
+					this.color = color;
+				}
+					
+			}
+
+		Classe Retangle:
+
+			public abstract class AbstractShape implements Shape{
+	
+				private Color color;
+				
+				public AbstractShape() {
+					// TODO Auto-generated constructor stub
+				}
+
+				public AbstractShape(Color color) {
+					this.color = color;
+				}
+
+				public Color getColor() {
+					return color;
+				}
+
+				public void setColor(Color color) {
+					this.color = color;
+				}
+					
+			}
+
+	Default Methods:
+
+		Application:
+
+			InterestService is = new BrazilInterestService(2.0);
+			double payment = is.payment(amount, months);
+
+		InterestService:
+
+			public interface InterestService{
+
+				// Presente na classe que implementa essa interface
+			
+				double getInterestRate();
+
+				default double payment(double amount, int months){
+
+					if(months < 1){
+						throw new InvalidParameterException("Months must be greater than zero");
+					}
+					return amount * Math.pow(1.0  + getInterestRate() / 100.0, months);
+				}
+
+			}
+
+		BrazilInterestService:
+
+			public class BrazilInterestService implements InterestService {
+
+				private double interestRate;
+
+				public BrazilInterestService(double interestRate){
+					this.interestRate = interestRate;
+				}
+
+				@Override
+				public double getInterestRate(){
+					return interestRate;
+				}
+
+			}
+
+
